@@ -27,10 +27,115 @@
 			@keyframes lds-spinner{0%{opacity:1}100%{opacity:0}}
 		</style>
 	</head>
-	<body>
-		<div class="background"></div>
-		<div class="pleasewait" id="loading"><div class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div>
-		<div id="content" oncontextmenu="return false;"></div>
-		<script src="PinballGame.js"></script>
-	</body>
+        <body>
+                <div class="menu" id="menu">
+                  <button id="start-button">Start</button>
+                  <button id="highscore-button">Highscore</button>
+                </div>
+                <div id="content" class="hidden" oncontextmenu="return false;"></div>
+                <button class="trigger left-trigger hidden" id="left-trigger">&#8592;</button>
+                <button class="trigger right-trigger hidden" id="right-trigger">&#8594;</button>
+                <div class="game-over hidden" id="game-over">
+                  <div class="game-over-content">
+                    <p id="final-score"></p>
+                    <input id="player-name" placeholder="Your name"/>
+                    <button id="submit-score">Submit</button>
+                    <button id="play-again">Play Again</button>
+                    <button id="back-menu">Main Menu</button>
+                  </div>
+                </div>
+                <div class="highscore-modal hidden" id="highscore-modal">
+                  <div class="highscore-modal-content">
+                    <h2>Leaderboard</h2>
+                    <ol id="leaderboard-list"></ol>
+                    <button id="close-highscore">Close</button>
+                  </div>
+                </div>
+                <script src="PinballGame.js"></script>
+                <script>
+                  const startBtn = document.getElementById('start-button');
+                  const menu = document.getElementById('menu');
+                  const content = document.getElementById('content');
+                  const leftTrigger = document.getElementById('left-trigger');
+                  const rightTrigger = document.getElementById('right-trigger');
+                  const gameOverEl = document.getElementById('game-over');
+                  const finalScoreEl = document.getElementById('final-score');
+                  const playAgainBtn = document.getElementById('play-again');
+                  const backMenuBtn = document.getElementById('back-menu');
+                  const submitScoreBtn = document.getElementById('submit-score');
+                  const playerNameInput = document.getElementById('player-name');
+                  const highscoreBtn = document.getElementById('highscore-button');
+                  const highscoreModal = document.getElementById('highscore-modal');
+                  const leaderboardList = document.getElementById('leaderboard-list');
+                  const closeHighscore = document.getElementById('close-highscore');
+                  const endpoint = 'https://script.google.com/macros/s/AKfycbz5pBJY9qeYThLk1GGDAXAibEey9_hazpRi3PbaY3MuU0h2_1tr8OfSrzTa5IUJMj0/exec';
+                  let hasStarted = false;
+
+                  function simulateKey(code, type) {
+                    const e = new KeyboardEvent(type, {keyCode: code, which: code});
+                    window.dispatchEvent(e);
+                  }
+
+                  ['mousedown','touchstart'].forEach(ev => {
+                    leftTrigger.addEventListener(ev, e => { e.preventDefault(); simulateKey(37, 'keydown'); });
+                    rightTrigger.addEventListener(ev, e => { e.preventDefault(); simulateKey(39, 'keydown'); });
+                  });
+                  ['mouseup','mouseleave','touchend'].forEach(ev => {
+                    leftTrigger.addEventListener(ev, e => { e.preventDefault(); simulateKey(37, 'keyup'); });
+                    rightTrigger.addEventListener(ev, e => { e.preventDefault(); simulateKey(39, 'keyup'); });
+                  });
+
+                  startBtn.addEventListener('click', () => {
+                    menu.classList.add('hidden');
+                    content.classList.remove('hidden');
+                    leftTrigger.classList.remove('hidden');
+                    rightTrigger.classList.remove('hidden');
+                    if (hasStarted) {
+                      window.restartGame();
+                    } else {
+                      window.startPinball();
+                      hasStarted = true;
+                    }
+                  });
+
+                  highscoreBtn.addEventListener('click', () => {
+                    fetch(endpoint).then(r => r.json()).then(data => {
+                      leaderboardList.innerHTML = '';
+                      data.scores.forEach(s => {
+                        const li = document.createElement('li');
+                        li.textContent = `${s.name} - ${s.score}`;
+                        leaderboardList.appendChild(li);
+                      });
+                      highscoreModal.classList.remove('hidden');
+                    });
+                  });
+                  closeHighscore.addEventListener('click', () => highscoreModal.classList.add('hidden'));
+
+                  window.onGameOver = function(score) {
+                    finalScoreEl.textContent = `Score: ${score}`;
+                    gameOverEl.classList.remove('hidden');
+                  };
+
+                  playAgainBtn.addEventListener('click', () => {
+                    gameOverEl.classList.add('hidden');
+                    window.restartGame();
+                  });
+
+                  backMenuBtn.addEventListener('click', () => {
+                    gameOverEl.classList.add('hidden');
+                    menu.classList.remove('hidden');
+                    content.classList.add('hidden');
+                    leftTrigger.classList.add('hidden');
+                    rightTrigger.classList.add('hidden');
+                    window.stopGame();
+                  });
+
+                  submitScoreBtn.addEventListener('click', () => {
+                    const name = playerNameInput.value.trim();
+                    if (!name) return;
+                    const score = finalScoreEl.textContent.replace(/[^0-9]/g, '');
+                    fetch(endpoint, { method: 'POST', body: JSON.stringify({ name: name, score: Number(score) }) });
+                  });
+                </script>
+        </body>
 </html>
