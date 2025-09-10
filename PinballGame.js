@@ -208,6 +208,10 @@ Pinball.Menu.prototype = {
 		this.clickTimestamp = null;
 		this.clickPositionX = null;
 		this.clickPositionY = null;
+
+		// Leaderboard UI
+		this.leaderboardBg = null;
+		this.leaderboardButton = null;
 		},
 
 	create: function()
@@ -298,6 +302,43 @@ Pinball.Menu.prototype = {
 			this.menuMainSoundButton.loadTexture("imageMenuButton");
 			this.menuMainSoundButtonIcon.loadTexture("imageMenuSoundOn");
 			}
+
+		// === LEADERBOARD BUTTON (centered above Play/Sound) ===
+		var lbWidth  = 240;
+		var lbHeight = 56;
+		var lbX = game.width / 2 - lbWidth / 2;
+		var lbY = this.menuMainPlayButton.position.y - 90; // sits above the Play/Sound row
+
+		// Background shape
+		this.leaderboardBg = game.add.graphics(0, 0);
+		this.leaderboardBg.beginFill(0x5C0222, 1);
+		this.leaderboardBg.lineStyle(2, 0xA90046, 1);
+		this.leaderboardBg.drawRoundedRect(lbX, lbY, lbWidth, lbHeight, 10);
+		this.leaderboardBg.endFill();
+		this.leaderboardBg.inputEnabled = true;
+		this.leaderboardBg.input.useHandCursor = true;
+		this.leaderboardBg.events.onInputDown.add(function(){
+			if (this.clickTimestamp==null){
+				this.clickTimestamp=this.getCurrentTime();
+				this.clickPositionX=this.game.input.activePointer.position.x;
+				this.clickPositionY=this.game.input.activePointer.position.y;
+			}
+		}, this);
+		this.leaderboardBg.events.onInputUp.add(this.goLeaderboard, this);
+
+		// Text label (also clickable)
+		this.leaderboardButton = game.add.bitmapText(lbX + lbWidth/2, lbY + lbHeight/2, "ArialBlackWhite", "LEADERBOARD", 22);
+		this.leaderboardButton.anchor.setTo(0.5, 0.5);
+		this.leaderboardButton.inputEnabled = true;
+		this.leaderboardButton.input.useHandCursor = true;
+		this.leaderboardButton.events.onInputDown.add(function(){
+			if (this.clickTimestamp==null){
+				this.clickTimestamp=this.getCurrentTime();
+				this.clickPositionX=this.game.input.activePointer.position.x;
+				this.clickPositionY=this.game.input.activePointer.position.y;
+			}
+		}, this);
+		this.leaderboardButton.events.onInputUp.add(this.goLeaderboard, this);
 		},
 
 	getBooleanSetting: function(settingName)
@@ -373,7 +414,7 @@ Pinball.Menu.prototype = {
 			this.setBooleanSetting("GAME_SOUND_ENABLED", false);
 
 			// SHOWING THE SOUND DISABLED IMAGES
-			this.menuMainSoundButton.loadTexture("imageMenuButtonDisabled")
+			this.menuMainSoundButton.loadTexture("imageMenuButtonDisabled");
 			this.menuMainSoundButtonIcon.loadTexture("imageMenuSoundOff");
 			}
 			else
@@ -385,7 +426,7 @@ Pinball.Menu.prototype = {
 			this.setBooleanSetting("GAME_SOUND_ENABLED", true);
 
 			// SHOWING THE SOUND ENABLED IMAGES
-			this.menuMainSoundButton.loadTexture("imageMenuButton")
+			this.menuMainSoundButton.loadTexture("imageMenuButton");
 			this.menuMainSoundButtonIcon.loadTexture("imageMenuSoundOn");
 			}
 
@@ -419,6 +460,20 @@ Pinball.Menu.prototype = {
 
 		// LAUNCHING THE GAME
 		game.state.start("Pinball.Game", Phaser.Plugin.StateTransition.Out.SlideLeft);
+		},
+
+	goLeaderboard: function()
+		{
+		// REJECTING ANY SLIDE AND LONG PRESS EVENT - same guard as other buttons
+		if (Math.abs(this.game.input.activePointer.position.x - this.clickPositionX) >= 25){ this.clickTimestamp=null; return; }
+		if (Math.abs(this.game.input.activePointer.position.y - this.clickPositionY) >= 25){ this.clickTimestamp=null; return; }
+		if (this.getCurrentTime() - this.clickTimestamp >= 500){ this.clickTimestamp=null; return; }
+
+		// LAUNCHING THE LEADERBOARD
+		game.state.start("Pinball.Leaderboard", Phaser.Plugin.StateTransition.Out.SlideLeft);
+
+		// CLEARING THE CLICK TIMESTAMP VALUE
+		this.clickTimestamp = null;
 		},
 
 	getCurrentTime: function()
