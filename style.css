@@ -53,20 +53,6 @@ body {
   text-decoration: none;
 }
 
-.start-button {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 10px 20px;
-  border: 0;
-  border-radius: 5px;
-  color: inherit;
-  background-color: #e64980;
-  text-transform: inherit;
-  cursor: pointer;
-}
-
 .trigger {
   appearance: none;
   position: absolute;

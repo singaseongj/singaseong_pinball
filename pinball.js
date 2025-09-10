@@ -24,7 +24,7 @@
   const BUMPER_BOUNCE = 1.5;
   const PADDLE_PULL = 0.002;
   const MAX_VELOCITY = 50;
-  const HIGH_SCORES_KEY = 'pinballHighScores';
+  const LEADERBOARD_URL = 'https://script.google.com/macros/s/AKfycbz5pBJY9qeYThLk1GGDAXAibEey9_hazpRi3PbaY3MuU0h2_1tr8OfSrzTa5IUJMj0/exec';
 
   // score elements
   let $currentScore = $('.current-score span');
@@ -73,8 +73,9 @@
     stopperGroup = Matter.Body.nextGroup(true);
 
     currentScore = 0;
-    highScore = getHighScores()[0]?.score || 0;
+    highScore = 0;
     $highScore.text(highScore);
+    showLeaderboard();
     isLeftPaddleUp = false;
     isRightPaddleUp = false;
     isSpringCharging = false;
@@ -300,33 +301,34 @@
   $('#submit-score').on('click', function() {
     let name = $('#player-name').val().trim();
     if (name) {
-      saveHighScore(name, currentScore);
-      highScore = getHighScores()[0].score;
-      $highScore.text(highScore);
+      fetch(LEADERBOARD_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, score: currentScore })
+      })
+        .then(() => {
+          $('#player-name').val('');
+          $('#game-over').addClass('hidden');
+          showLeaderboard();
+          createPinball();
+        })
+        .catch(err => console.error('Error submitting score:', err));
     }
-    $('#player-name').val('');
-    $('#game-over').addClass('hidden');
-    createPinball();
   });
 
-  function getHighScores() {
-    return JSON.parse(localStorage.getItem(HIGH_SCORES_KEY)) || [];
-  }
-
-  function saveHighScore(name, score) {
-    let scores = getHighScores();
-    scores.push({ name, score });
-    scores.sort((a, b) => b.score - a.score);
-    scores = scores.slice(0, 5);
-    localStorage.setItem(HIGH_SCORES_KEY, JSON.stringify(scores));
-  }
-
   function showLeaderboard() {
-    let list = $('#leaderboard-list');
-    list.empty();
-    getHighScores().forEach(s => {
-      list.append(`<li>${s.name}: ${s.score}</li>`);
-    });
+    fetch(LEADERBOARD_URL)
+      .then(res => res.json())
+      .then(data => {
+        let list = $('#leaderboard-list');
+        list.empty();
+        data.scores.forEach(s => {
+          list.append(`<li>${s.name}: ${s.score}</li>`);
+        });
+        highScore = data.scores[0]?.score || 0;
+        $highScore.text(highScore);
+      })
+      .catch(err => console.error('Error fetching leaderboard:', err));
   }
 
   function rand(min, max) {
@@ -403,9 +405,5 @@
     });
   }
 
-  $('#start-button').on('click', function() {
-    $(this).addClass('hidden');
-    $('.container').removeClass('hidden');
-    load();
-  });
+  load();
 })();
