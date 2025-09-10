@@ -427,6 +427,7 @@ Pinball.Menu.prototype = {
 		}
 	};
 
+
 Pinball.Game = function(game)
 	{
 	this.outlineVertices = [1440,-3687,1023,-2194,1365,-1961,1365,-663,638,-480,160,-154,150,971,-330,970,-335,-153,-800,-480,-1540,-619,-1540,-1988,-1147,-2175,-1429,-3152,-1500,-3195,-1492,-3399,-1438,-3867,-1309,-4132,-1112,-4351,-787,-4540,-389,-4670,139,-4778,655,-4846,872,-4837,1067,-4792,1236,-4700,1374,-4584,1480,-4440,1557,-4271,1601,-3992,1601,-3712,1600,-171,1442,-169,1440,-3687];
@@ -510,6 +511,38 @@ Pinball.Game = function(game)
 	this.buttonBNormal = null;
 	this.buttonBPressed = null;
 	this.buttonBHandler = null;
+
+	// NEW TAB BUTTONS
+	this.leftTabButton = null;
+	this.leftTabButtonPressed = null;
+	this.leftTabHandler = null;
+	this.rightTabButton = null;
+	this.rightTabButtonPressed = null;
+	this.rightTabHandler = null;
+
+	// GAME OVER OVERLAY
+	this.gameOverOverlay = null;
+	this.gameOverBackground = null;
+	this.gameOverTitle = null;
+	this.gameOverScore = null;
+	this.playAgainButton = null;
+	this.mainMenuButton = null;
+	this.enterNameButton = null;
+	this.gameOverActive = false;
+
+	// NAME INPUT OVERLAY
+	this.nameInputOverlay = null;
+	this.nameInputBackground = null;
+	this.nameInputTitle = null;
+	this.nameInputField = null;
+	this.nameInputSubmit = null;
+	this.nameInputCancel = null;
+	this.nameInputActive = false;
+	this.playerName = "";
+
+	// LEADERBOARD
+	this.leaderboardData = [];
+	this.API_URL = "https://script.google.com/macros/s/AKfycbz5pBJY9qeYThLk1GGDAXAibEey9_hazpRi3PbaY3MuU0h2_1tr8OfSrzTa5IUJMj0/exec";
 
 	this.isMobileDevice = null;
 
@@ -599,6 +632,34 @@ Pinball.Game.prototype = {
 		this.buttonBNormal = null;
 		this.buttonBPressed = null;
 		this.buttonBHandler = null;
+
+		// RESET NEW ELEMENTS
+		this.leftTabButton = null;
+		this.leftTabButtonPressed = null;
+		this.leftTabHandler = null;
+		this.rightTabButton = null;
+		this.rightTabButtonPressed = null;
+		this.rightTabHandler = null;
+
+		this.gameOverOverlay = null;
+		this.gameOverBackground = null;
+		this.gameOverTitle = null;
+		this.gameOverScore = null;
+		this.playAgainButton = null;
+		this.mainMenuButton = null;
+		this.enterNameButton = null;
+		this.gameOverActive = false;
+
+		this.nameInputOverlay = null;
+		this.nameInputBackground = null;
+		this.nameInputTitle = null;
+		this.nameInputField = null;
+		this.nameInputSubmit = null;
+		this.nameInputCancel = null;
+		this.nameInputActive = false;
+		this.playerName = "";
+
+		this.leaderboardData = [];
 
 		this.isMobileDevice = null;
 
@@ -778,10 +839,10 @@ Pinball.Game.prototype = {
 			this.rightBounceLine.lineTo(this.guide4Vertices[i] * 0.10, this.guide4Vertices[i +1] * 0.10);
 			}
 
-		// ENABLING THE BOX2D PHYSICS
+		// ENABLING THE BOX2D PHYSICS (REDUCED GRAVITY FROM 5000 TO 4000)
 		game.physics.startSystem(Phaser.Physics.BOX2D);
 		game.physics.box2d.ptmRatio = 500;
-		game.physics.box2d.gravity.y = 5000; // LARGE GRAVITY TO MAKE SCENE FEEL SMALLER
+		game.physics.box2d.gravity.y = 4000; // REDUCED GRAVITY FOR SLOWER BALL
 		game.physics.box2d.friction = 0.1;
 
 		// CREATING THE PINBALL BOARD
@@ -887,21 +948,17 @@ Pinball.Game.prototype = {
 		// SETTING A CALLBACK WHEN THE BALL HITS THE FIRST GUTTER
 		this.ballBody.setFixtureContactCallback(this.gutterFixture1, function()
 			{
-			// CLEARING THE SCORE
-			this.updateScore(0);
-
 			// SETTING THAT THE GAME IS OVER
 			this.gameOver = true;
+			this.showGameOverOverlay();
 			}, this);
 
 		// SETTING A CALLBACK WHEN THE BALL HITS THE SECOND GUTTER (FAILSAFE)
 		this.ballBody.setFixtureContactCallback(this.gutterFixture2, function()
 			{
-			// CLEARING THE SCORE
-			this.updateScore(0);
-
 			// SETTING THAT THE GAME IS OVER
 			this.gameOver = true;
+			this.showGameOverOverlay();
 			}, this);
 
 		// SETTING A CALLBACK WHEN THE BALL HITS THE LAUNCHER
@@ -1177,9 +1234,85 @@ Pinball.Game.prototype = {
 			this.soundHandlerOffSprite.visible = true;
 
 			// SHOWING THE SOUND ON BUTTON
-			this.soundHandlerOnBackground.visible = true;
-			this.soundHandlerOnSprite.visible = true;
+			this.soundHandlerOnBackground.visible = false;
+			this.soundHandlerOnSprite.visible = false;
 			}
+
+		// ADDING THE LEFT TAB BUTTON
+		this.leftTabButton = game.add.graphics();
+		this.leftTabButton.beginFill(0x383838, 0.8);
+		this.leftTabButton.lineStyle(2, 0x707070, 1);
+		this.leftTabButton.drawRoundedRect(-435, 200, 60, 120, 10);
+		this.leftTabButton.inputEnabled = true;
+		this.leftTabButton.fixedToCamera = false;
+
+		this.leftTabButtonPressed = game.add.graphics();
+		this.leftTabButtonPressed.beginFill(0x606060, 0.8);
+		this.leftTabButtonPressed.lineStyle(2, 0x909090, 1);
+		this.leftTabButtonPressed.drawRoundedRect(-435, 200, 60, 120, 10);
+		this.leftTabButtonPressed.visible = false;
+		this.leftTabButtonPressed.fixedToCamera = false;
+
+		// LEFT TAB TEXT
+		var leftTabText = game.add.bitmapText(-415, 250, "ArialBlackWhite", "L", 32);
+		leftTabText.tint = 0xFFFFFF;
+		leftTabText.fixedToCamera = false;
+
+		// LEFT TAB HANDLER
+		this.leftTabHandler = game.add.graphics();
+		this.leftTabHandler.beginFill(0x000000, 0);
+		this.leftTabHandler.drawRect(-435, 200, 60, 120);
+		this.leftTabHandler.isDown = false;
+		this.leftTabHandler.inputEnabled = true;
+		this.leftTabHandler.fixedToCamera = false;
+		this.leftTabHandler.events.onInputDown.add(function(){
+			this.leftTabHandler.isDown=true;
+			this.leftTabButton.visible=false;
+			this.leftTabButtonPressed.visible=true;
+		},this);
+		this.leftTabHandler.events.onInputUp.add(function(){
+			this.leftTabHandler.isDown=false;
+			this.leftTabButton.visible=true;
+			this.leftTabButtonPressed.visible=false;
+		},this);
+
+		// ADDING THE RIGHT TAB BUTTON
+		this.rightTabButton = game.add.graphics();
+		this.rightTabButton.beginFill(0x383838, 0.8);
+		this.rightTabButton.lineStyle(2, 0x707070, 1);
+		this.rightTabButton.drawRoundedRect(105, 200, 60, 120, 10);
+		this.rightTabButton.inputEnabled = true;
+		this.rightTabButton.fixedToCamera = false;
+
+		this.rightTabButtonPressed = game.add.graphics();
+		this.rightTabButtonPressed.beginFill(0x606060, 0.8);
+		this.rightTabButtonPressed.lineStyle(2, 0x909090, 1);
+		this.rightTabButtonPressed.drawRoundedRect(105, 200, 60, 120, 10);
+		this.rightTabButtonPressed.visible = false;
+		this.rightTabButtonPressed.fixedToCamera = false;
+
+		// RIGHT TAB TEXT
+		var rightTabText = game.add.bitmapText(125, 250, "ArialBlackWhite", "R", 32);
+		rightTabText.tint = 0xFFFFFF;
+		rightTabText.fixedToCamera = false;
+
+		// RIGHT TAB HANDLER
+		this.rightTabHandler = game.add.graphics();
+		this.rightTabHandler.beginFill(0x000000, 0);
+		this.rightTabHandler.drawRect(105, 200, 60, 120);
+		this.rightTabHandler.isDown = false;
+		this.rightTabHandler.inputEnabled = true;
+		this.rightTabHandler.fixedToCamera = false;
+		this.rightTabHandler.events.onInputDown.add(function(){
+			this.rightTabHandler.isDown=true;
+			this.rightTabButton.visible=false;
+			this.rightTabButtonPressed.visible=true;
+		},this);
+		this.rightTabHandler.events.onInputUp.add(function(){
+			this.rightTabHandler.isDown=false;
+			this.rightTabButton.visible=true;
+			this.rightTabButtonPressed.visible=false;
+		},this);
 
 		// ADDING THE NORMAL BUTTON A
 		this.buttonANormal = game.add.sprite(-10, 497, "imageGameButtonANormal");
@@ -1241,6 +1374,12 @@ Pinball.Game.prototype = {
 			this.buttonBHandler.visible = false;
 			}
 
+		// CREATING GAME OVER OVERLAY
+		this.createGameOverOverlay();
+
+		// CREATING NAME INPUT OVERLAY
+		this.createNameInputOverlay();
+
 		// GETTING THE CURSOR KEY INPUTS
 		this.cursors = game.input.keyboard.createCursorKeys();
 
@@ -1259,22 +1398,310 @@ Pinball.Game.prototype = {
 			});
 		},
 
+	createGameOverOverlay: function()
+		{
+		// CREATE OVERLAY GROUP
+		this.gameOverOverlay = game.add.group();
+		this.gameOverOverlay.fixedToCamera = true;
+
+		// SEMI-TRANSPARENT BACKGROUND
+		this.gameOverBackground = game.add.graphics();
+		this.gameOverBackground.beginFill(0x000000, 0.8);
+		this.gameOverBackground.drawRect(0, 0, 320, 608);
+		this.gameOverBackground.fixedToCamera = true;
+		this.gameOverOverlay.add(this.gameOverBackground);
+
+		// GAME OVER TITLE
+		this.gameOverTitle = game.add.bitmapText(160, 150, "ArialBlackWhite", "GAME OVER", 32);
+		this.gameOverTitle.anchor.setTo(0.5, 0.5);
+		this.gameOverTitle.fixedToCamera = true;
+		this.gameOverTitle.tint = 0xFFFFFF;
+		this.gameOverOverlay.add(this.gameOverTitle);
+
+		// FINAL SCORE
+		this.gameOverScore = game.add.bitmapText(160, 200, "ArialBlackWhite", "SCORE: 0", 24);
+		this.gameOverScore.anchor.setTo(0.5, 0.5);
+		this.gameOverScore.fixedToCamera = true;
+		this.gameOverScore.tint = 0xFFFFFF;
+		this.gameOverOverlay.add(this.gameOverScore);
+
+		// PLAY AGAIN BUTTON
+		var playAgainBg = game.add.graphics();
+		playAgainBg.beginFill(0x022C5C, 1);
+		playAgainBg.lineStyle(2, 0x0046A9, 1);
+		playAgainBg.drawRoundedRect(60, 260, 200, 50, 10);
+		playAgainBg.fixedToCamera = true;
+		this.gameOverOverlay.add(playAgainBg);
+
+		this.playAgainButton = game.add.bitmapText(160, 285, "ArialBlackWhite", "PLAY AGAIN", 20);
+		this.playAgainButton.anchor.setTo(0.5, 0.5);
+		this.playAgainButton.fixedToCamera = true;
+		this.playAgainButton.inputEnabled = true;
+		this.playAgainButton.input.useHandCursor = true;
+		this.playAgainButton.events.onInputUp.add(this.restartGame, this);
+		this.gameOverOverlay.add(this.playAgainButton);
+
+		// MAIN MENU BUTTON
+		var mainMenuBg = game.add.graphics();
+		mainMenuBg.beginFill(0x383838, 1);
+		mainMenuBg.lineStyle(2, 0x707070, 1);
+		mainMenuBg.drawRoundedRect(60, 330, 200, 50, 10);
+		mainMenuBg.fixedToCamera = true;
+		this.gameOverOverlay.add(mainMenuBg);
+
+		this.mainMenuButton = game.add.bitmapText(160, 355, "ArialBlackWhite", "MAIN MENU", 20);
+		this.mainMenuButton.anchor.setTo(0.5, 0.5);
+		this.mainMenuButton.fixedToCamera = true;
+		this.mainMenuButton.inputEnabled = true;
+		this.mainMenuButton.input.useHandCursor = true;
+		this.mainMenuButton.events.onInputUp.add(this.goToMainMenu, this);
+		this.gameOverOverlay.add(this.mainMenuButton);
+
+		// ENTER NAME BUTTON
+		var enterNameBg = game.add.graphics();
+		enterNameBg.beginFill(0x5C0222, 1);
+		enterNameBg.lineStyle(2, 0xA90046, 1);
+		enterNameBg.drawRoundedRect(60, 400, 200, 50, 10);
+		enterNameBg.fixedToCamera = true;
+		this.gameOverOverlay.add(enterNameBg);
+
+		this.enterNameButton = game.add.bitmapText(160, 425, "ArialBlackWhite", "SAVE SCORE", 20);
+		this.enterNameButton.anchor.setTo(0.5, 0.5);
+		this.enterNameButton.fixedToCamera = true;
+		this.enterNameButton.inputEnabled = true;
+		this.enterNameButton.input.useHandCursor = true;
+		this.enterNameButton.events.onInputUp.add(this.showNameInput, this);
+		this.gameOverOverlay.add(this.enterNameButton);
+
+		// HIDE INITIALLY
+		this.gameOverOverlay.visible = false;
+		},
+
+	createNameInputOverlay: function()
+		{
+		// CREATE OVERLAY GROUP
+		this.nameInputOverlay = game.add.group();
+		this.nameInputOverlay.fixedToCamera = true;
+
+		// SEMI-TRANSPARENT BACKGROUND
+		this.nameInputBackground = game.add.graphics();
+		this.nameInputBackground.beginFill(0x000000, 0.9);
+		this.nameInputBackground.drawRect(0, 0, 320, 608);
+		this.nameInputBackground.fixedToCamera = true;
+		this.nameInputOverlay.add(this.nameInputBackground);
+
+		// TITLE
+		this.nameInputTitle = game.add.bitmapText(160, 200, "ArialBlackWhite", "ENTER YOUR NAME", 24);
+		this.nameInputTitle.anchor.setTo(0.5, 0.5);
+		this.nameInputTitle.fixedToCamera = true;
+		this.nameInputTitle.tint = 0xFFFFFF;
+		this.nameInputOverlay.add(this.nameInputTitle);
+
+		// INPUT FIELD BACKGROUND
+		var inputBg = game.add.graphics();
+		inputBg.beginFill(0xFFFFFF, 1);
+		inputBg.lineStyle(2, 0x343434, 1);
+		inputBg.drawRoundedRect(60, 250, 200, 40, 5);
+		inputBg.fixedToCamera = true;
+		this.nameInputOverlay.add(inputBg);
+
+		// NAME DISPLAY
+		this.nameInputField = game.add.bitmapText(70, 270, "ArialBlackWhite", "", 20);
+		this.nameInputField.fixedToCamera = true;
+		this.nameInputField.tint = 0x000000;
+		this.nameInputOverlay.add(this.nameInputField);
+
+		// SUBMIT BUTTON
+		var submitBg = game.add.graphics();
+		submitBg.beginFill(0x022C5C, 1);
+		submitBg.lineStyle(2, 0x0046A9, 1);
+		submitBg.drawRoundedRect(80, 320, 80, 40, 10);
+		submitBg.fixedToCamera = true;
+		this.nameInputOverlay.add(submitBg);
+
+		this.nameInputSubmit = game.add.bitmapText(120, 340, "ArialBlackWhite", "SUBMIT", 16);
+		this.nameInputSubmit.anchor.setTo(0.5, 0.5);
+		this.nameInputSubmit.fixedToCamera = true;
+		this.nameInputSubmit.inputEnabled = true;
+		this.nameInputSubmit.input.useHandCursor = true;
+		this.nameInputSubmit.events.onInputUp.add(this.submitScore, this);
+		this.nameInputOverlay.add(this.nameInputSubmit);
+
+		// CANCEL BUTTON
+		var cancelBg = game.add.graphics();
+		cancelBg.beginFill(0x383838, 1);
+		cancelBg.lineStyle(2, 0x707070, 1);
+		cancelBg.drawRoundedRect(180, 320, 80, 40, 10);
+		cancelBg.fixedToCamera = true;
+		this.nameInputOverlay.add(cancelBg);
+
+		this.nameInputCancel = game.add.bitmapText(220, 340, "ArialBlackWhite", "CANCEL", 16);
+		this.nameInputCancel.anchor.setTo(0.5, 0.5);
+		this.nameInputCancel.fixedToCamera = true;
+		this.nameInputCancel.inputEnabled = true;
+		this.nameInputCancel.input.useHandCursor = true;
+		this.nameInputCancel.events.onInputUp.add(this.hideNameInput, this);
+		this.nameInputOverlay.add(this.nameInputCancel);
+
+		// HIDE INITIALLY
+		this.nameInputOverlay.visible = false;
+		},
+
+	showGameOverOverlay: function()
+		{
+		this.gameOverActive = true;
+		this.gameOverScore.setText("SCORE: " + this.scoreValue);
+		this.gameOverOverlay.visible = true;
+		
+		// PAUSE PHYSICS
+		game.physics.box2d.pause();
+		},
+
+	hideGameOverOverlay: function()
+		{
+		this.gameOverActive = false;
+		this.gameOverOverlay.visible = false;
+		},
+
+	showNameInput: function()
+		{
+		this.nameInputActive = true;
+		this.playerName = "";
+		this.nameInputField.setText("");
+		this.nameInputOverlay.visible = true;
+		this.hideGameOverOverlay();
+
+		// ENABLE KEYBOARD INPUT
+		game.input.keyboard.addCallbacks(this, this.onKeyDown, null, null);
+		},
+
+	hideNameInput: function()
+		{
+		this.nameInputActive = false;
+		this.nameInputOverlay.visible = false;
+		this.showGameOverOverlay();
+
+		// DISABLE KEYBOARD INPUT
+		game.input.keyboard.removeCallbacks();
+		},
+
+	onKeyDown: function(event)
+		{
+		if (!this.nameInputActive) return;
+
+		if (event.keyCode === 8) // BACKSPACE
+			{
+			this.playerName = this.playerName.slice(0, -1);
+			this.nameInputField.setText(this.playerName);
+			}
+		else if (event.keyCode === 13) // ENTER
+			{
+			this.submitScore();
+			}
+		else if (event.keyCode >= 32 && event.keyCode <= 126 && this.playerName.length < 12)
+			{
+			this.playerName += String.fromCharCode(event.keyCode);
+			this.nameInputField.setText(this.playerName);
+			}
+		},
+
+	submitScore: function()
+		{
+		if (this.playerName.trim().length === 0)
+			{
+			// SHOW ERROR OR JUST RETURN
+			return;
+			}
+
+		var scoreData = {
+			name: this.playerName.trim(),
+			score: this.scoreValue
+		};
+
+		// SUBMIT TO LEADERBOARD
+		this.postToLeaderboard(scoreData);
+		this.hideNameInput();
+		},
+
+	postToLeaderboard: function(scoreData)
+		{
+		var xhr = new XMLHttpRequest();
+		xhr.open("POST", this.API_URL, true);
+		xhr.setRequestHeader("Content-Type", "application/json");
+		
+		var self = this;
+		xhr.onreadystatechange = function()
+			{
+			if (xhr.readyState === 4)
+				{
+				if (xhr.status === 200)
+					{
+					console.log("Score submitted successfully!");
+					// UPDATE LOCAL HIGH SCORE
+					if (self.scoreValue > parseInt(self.getHighscore()))
+						{
+						self.setHighscore(self.scoreValue);
+						}
+					}
+				else
+					{
+					console.error("Failed to submit score:", xhr.statusText);
+					// FALLBACK TO LOCAL HIGH SCORE UPDATE
+					if (self.scoreValue > parseInt(self.getHighscore()))
+						{
+						self.setHighscore(self.scoreValue);
+						}
+					}
+				}
+			};
+
+		xhr.onerror = function()
+			{
+			console.error("Network error while submitting score");
+			// FALLBACK TO LOCAL HIGH SCORE UPDATE
+			if (self.scoreValue > parseInt(self.getHighscore()))
+				{
+				self.setHighscore(self.scoreValue);
+				}
+			};
+
+		xhr.send(JSON.stringify(scoreData));
+		},
+
+	restartGame: function()
+		{
+		this.hideGameOverOverlay();
+		this.updateScore(0);
+		this.gameOver = false;
+		
+		// RESET BALL POSITION
+		this.ballBody.x = this.ballStart[0] * this.PTM;
+		this.ballBody.y = this.ballStart[1] * this.PTM;
+		this.ballBody.velocity.x = 0;
+		this.ballBody.velocity.y = 0;
+		this.ballBody.angularVelocity = 0;
+
+		// RESUME PHYSICS
+		game.physics.box2d.resume();
+		},
+
+	goToMainMenu: function()
+		{
+		game.state.start("Pinball.Menu");
+		},
+
 	update: function()
 		{
+		// SKIP NORMAL GAMEPLAY WHEN OVERLAYS ARE ACTIVE
+		if (this.gameOverActive || this.nameInputActive)
+			{
+			return;
+			}
+
 		// CHECKING IF THE GAME IS OVER
 		if(this.gameOver==true)
 			{
-			// RESTORING THE BALL THE STARTING POSITION
-			this.ballBody.x = this.ballStart[0]*this.PTM;
-			this.ballBody.y = this.ballStart[1]*this.PTM;
-
-			// CLEARING THE BALL VELOCITY
-			this.ballBody.velocity.x = 0;
-			this.ballBody.velocity.y = 0;
-			this.ballBody.angularVelocity = 0;
-
-			// SETTING THAT THE GAME IS NOT OVER
-			this.gameOver = false;
+			return; // DON'T AUTO-RESTART, WAIT FOR OVERLAY
 			}
 
 		// THE BALL SPRITE MUST ALWAYS FOLLOW THE BOX2D BALL BODY
@@ -1287,8 +1714,8 @@ Pinball.Game.prototype = {
 		// THE RIGHT FLIPPER SPRITE MUST ALWAYS FOLLOW THE BOX2D RIGHT FLIPPER
 		this.rightFlipperSprite.angle = this.rightFlipper.angle;
 
-		// CHECKING IF PRESSING THE LEFT OR 'A' KEY
-		if(this.cursors.left.isDown==true || this.keyA.isDown==true || this.buttonAHandler.isDown==true)
+		// CHECKING IF PRESSING THE LEFT OR 'A' KEY OR LEFT TAB
+		if(this.cursors.left.isDown==true || this.keyA.isDown==true || this.buttonAHandler.isDown==true || this.leftTabHandler.isDown==true)
 			{
 			// CHECKING IF THE SOUND IS ENABLED
 			if (GAME_SOUND_ENABLED==true)
@@ -1318,8 +1745,8 @@ Pinball.Game.prototype = {
 				}
 			}
 
-		// CHECKING IF PRESSING THE RIGHT OR 'D' KEY
-		if(this.cursors.right.isDown==true || this.keyD.isDown==true || this.buttonBHandler.isDown==true)
+		// CHECKING IF PRESSING THE RIGHT OR 'D' KEY OR RIGHT TAB
+		if(this.cursors.right.isDown==true || this.keyD.isDown==true || this.buttonBHandler.isDown==true || this.rightTabHandler.isDown==true)
 			{
 			// CHECKING IF THE SOUND IS ENABLED
 			if (GAME_SOUND_ENABLED==true)
@@ -1410,9 +1837,6 @@ Pinball.Game.prototype = {
 		// CHECKING IF THE CURRENT SCORE HITS THE HIGH SCORE
 		if (this.scoreValue>this.getHighscore())
 			{
-			// SETTING THE NEW HIGHSCORE
-			this.setHighscore(this.scoreValue);
-
 			// UPDATING THE HIGHSCORE WITH THE NEW VALUE
 			this.highScoreLabel.setText(newScore);
 
@@ -1494,6 +1918,142 @@ Pinball.Game.prototype = {
 		}
 	};
 
+// ADD LEADERBOARD STATE
+Pinball.Leaderboard = function(game) {};
+
+Pinball.Leaderboard.prototype = {
+
+	create: function()
+		{
+		// BACKGROUND
+		this.add.tileSprite(0, 0, 320, 608, "imageGameBackground");
+
+		// TITLE
+		var title = game.add.bitmapText(160, 50, "ArialBlackWhite", "LEADERBOARD", 32);
+		title.anchor.setTo(0.5, 0.5);
+		title.tint = 0xFFFFFF;
+
+		// LOADING TEXT
+		this.loadingText = game.add.bitmapText(160, 150, "ArialBlackWhite", "LOADING...", 20);
+		this.loadingText.anchor.setTo(0.5, 0.5);
+		this.loadingText.tint = 0xFFFFFF;
+
+		// BACK BUTTON
+		var backBg = game.add.graphics();
+		backBg.beginFill(0x383838, 1);
+		backBg.lineStyle(2, 0x707070, 1);
+		backBg.drawRoundedRect(60, 520, 200, 50, 10);
+
+		var backButton = game.add.bitmapText(160, 545, "ArialBlackWhite", "BACK TO MENU", 20);
+		backButton.anchor.setTo(0.5, 0.5);
+		backButton.inputEnabled = true;
+		backButton.input.useHandCursor = true;
+		backButton.events.onInputUp.add(function(){
+			game.state.start("Pinball.Menu");
+		}, this);
+
+		// LOAD LEADERBOARD DATA
+		this.loadLeaderboard();
+		},
+
+	loadLeaderboard: function()
+		{
+		var xhr = new XMLHttpRequest();
+		xhr.open("GET", "https://script.google.com/macros/s/AKfycbz5pBJY9qeYThLk1GGDAXAibEey9_hazpRi3PbaY3MuU0h2_1tr8OfSrzTa5IUJMj0/exec", true);
+		
+		var self = this;
+		xhr.onreadystatechange = function()
+			{
+			if (xhr.readyState === 4)
+				{
+				if (xhr.status === 200)
+					{
+					try 
+						{
+						var data = JSON.parse(xhr.responseText);
+						self.displayLeaderboard(data.scores);
+						}
+					catch(e)
+						{
+						self.showError("Failed to parse leaderboard data");
+						}
+					}
+				else
+					{
+					self.showError("Failed to load leaderboard");
+					}
+				}
+			};
+
+		xhr.onerror = function()
+			{
+			self.showError("Network error - Check your connection");
+			};
+
+		xhr.send();
+		},
+
+	displayLeaderboard: function(scores)
+		{
+		this.loadingText.visible = false;
+
+		if (!scores || scores.length === 0)
+			{
+			var noData = game.add.bitmapText(160, 200, "ArialBlackWhite", "NO SCORES YET", 20);
+			noData.anchor.setTo(0.5, 0.5);
+			noData.tint = 0xFFFFFF;
+			return;
+			}
+
+		// DISPLAY TOP 10 SCORES
+		for (var i = 0; i < Math.min(scores.length, 10); i++)
+			{
+			var rank = (i + 1).toString();
+			var name = scores[i].name.substring(0, 12); // LIMIT NAME LENGTH
+			var score = scores[i].score.toString();
+			
+			var yPos = 120 + (i * 35);
+			
+			// RANK
+			var rankText = game.add.bitmapText(30, yPos, "ArialBlackWhite", rank + ".", 18);
+			rankText.tint = 0xFFD700; // GOLD COLOR
+			
+			// NAME
+			var nameText = game.add.bitmapText(60, yPos, "ArialBlackWhite", name, 18);
+			nameText.tint = 0xFFFFFF;
+			
+			// SCORE
+			var scoreText = game.add.bitmapText(260, yPos, "ArialBlackWhite", score, 18);
+			scoreText.anchor.setTo(1, 0);
+			scoreText.tint = 0x00FF00; // GREEN COLOR
+			}
+		},
+
+	showError: function(message)
+		{
+		this.loadingText.setText(message);
+		this.loadingText.tint = 0xFF0000; // RED COLOR
+		}
+	};
+
+// MODIFY MENU STATE TO INCLUDE LEADERBOARD BUTTON
+// ADD THIS TO YOUR EXISTING MENU STATE CREATE FUNCTION:
+/*
+// LEADERBOARD BUTTON (ADD THIS NEXT TO YOUR START BUTTON)
+var leaderboardBg = game.add.graphics();
+leaderboardBg.beginFill(0x5C0222, 1);
+leaderboardBg.lineStyle(2, 0xA90046, 1);
+leaderboardBg.drawRoundedRect([X_POSITION], [Y_POSITION], 200, 50, 10);
+
+var leaderboardButton = game.add.bitmapText([X_CENTER], [Y_CENTER], "ArialBlackWhite", "LEADERBOARD", 20);
+leaderboardButton.anchor.setTo(0.5, 0.5);
+leaderboardButton.inputEnabled = true;
+leaderboardButton.input.useHandCursor = true;
+leaderboardButton.events.onInputUp.add(function(){
+	game.state.start("Pinball.Leaderboard");
+}, this);
+*/
+
 // SETTING THE DEFAULT RENDERER MODE
 var rendererMode = Phaser.WEBGL;
 
@@ -1513,6 +2073,7 @@ game.state.add("Pinball.Preloader", Pinball.Preloader);
 game.state.add("Pinball.Splash", Pinball.Splash);
 game.state.add("Pinball.Menu", Pinball.Menu);
 game.state.add("Pinball.Game", Pinball.Game);
+game.state.add("Pinball.Leaderboard", Pinball.Leaderboard);
 
 // STARTING THE GAME PRELOADER
 game.state.start("Pinball.Preloader");
