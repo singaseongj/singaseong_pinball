@@ -1,0 +1,31 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background: #f0f0f0;
+  margin: 0;
+  padding: 0;
+}
+
+#game {
+  background: #111;
+  border: 2px solid #444;
+  display: block;
+  margin: 20px auto;
+}
+
+.hidden {
+  display: none;
+}
+
+#scoreboard {
+  background: #fff;
+  border: 1px solid #ccc;
+  padding: 10px;
+  width: 200px;
+  margin: 20px auto;
+}
+
+#scoreWrap {
+  font-size: 20px;
+  color: #333;
+}
