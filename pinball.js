@@ -36,6 +36,7 @@
   let leftPaddle, leftUpStopper, leftDownStopper, isLeftPaddleUp;
   let rightPaddle, rightUpStopper, rightDownStopper, isRightPaddleUp;
   let bottomReset, shooterReset;
+  let isSpringCharging, springStartTime;
 
   function load() {
     init();
@@ -76,6 +77,8 @@
     $highScore.text(highScore);
     isLeftPaddleUp = false;
     isRightPaddleUp = false;
+    isSpringCharging = false;
+    springStartTime = 0;
   }
 
   function createStaticBodies() {
@@ -237,17 +240,24 @@
     }));
 
     $('body').on('keydown', function(e) {
-      if (e.which === 37) {
+      if (e.which === 90) {
         isLeftPaddleUp = true;
-      } else if (e.which === 39) {
+      } else if (e.which === 191) {
         isRightPaddleUp = true;
+      } else if (e.which === 32 && !isSpringCharging) {
+        isSpringCharging = true;
+        springStartTime = Date.now();
       }
     });
     $('body').on('keyup', function(e) {
-      if (e.which === 37) {
+      if (e.which === 90) {
         isLeftPaddleUp = false;
-      } else if (e.which === 39) {
+      } else if (e.which === 191) {
         isRightPaddleUp = false;
+      } else if (e.which === 32 && isSpringCharging) {
+        let charge = Math.min((Date.now() - springStartTime) * 0.02, 30);
+        Matter.Body.setVelocity(pinball, { x: 0, y: -10 - charge });
+        isSpringCharging = false;
       }
     });
 
@@ -262,7 +272,7 @@
   function launchPinball() {
     updateScore(0);
     Matter.Body.setPosition(pinball, { x: 465, y: 765 });
-    Matter.Body.setVelocity(pinball, { x: 0, y: -25 + rand(-2, 2) });
+    Matter.Body.setVelocity(pinball, { x: 0, y: 0 });
     Matter.Body.setAngularVelocity(pinball, 0);
   }
 
@@ -393,5 +403,9 @@
     });
   }
 
-  window.addEventListener('load', load, false);
+  $('#start-button').on('click', function() {
+    $(this).addClass('hidden');
+    $('.container').removeClass('hidden');
+    load();
+  });
 })();
