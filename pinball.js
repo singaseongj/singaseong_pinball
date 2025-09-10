@@ -331,6 +331,20 @@
       .catch(err => console.error('Error fetching leaderboard:', err));
   }
 
+  function showHighScores() {
+    fetch(LEADERBOARD_URL)
+      .then(res => res.json())
+      .then(data => {
+        let list = $('#highscore-list');
+        list.empty();
+        data.scores.forEach(s => {
+          list.append(`<li>${s.name}: ${s.score}</li>`);
+        });
+        $('#highscore-modal').removeClass('hidden');
+      })
+      .catch(err => console.error('Error fetching leaderboard:', err));
+  }
+
   function rand(min, max) {
     return Math.random() * (max - min) + min;
   }
@@ -405,5 +419,17 @@
     });
   }
 
-  load();
+  $('#start-game').on('click', () => {
+    $('.menu').addClass('hidden');
+    $('.container').removeClass('hidden');
+    load();
+  });
+
+  $('#show-highscores').on('click', () => {
+    showHighScores();
+  });
+
+  $('#close-highscore').on('click', () => {
+    $('#highscore-modal').addClass('hidden');
+  });
 })();
