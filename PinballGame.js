@@ -1552,51 +1552,55 @@ Pinball.Game.prototype = {
 		this.nameInputTitle.tint = 0xFFFFFF;
 		this.nameInputOverlay.add(this.nameInputTitle);
 
-		// INPUT FIELD BACKGROUND
-		var inputBg = game.add.graphics();
-		inputBg.beginFill(0xFFFFFF, 1);
-		inputBg.lineStyle(2, 0x343434, 1);
-		inputBg.drawRoundedRect(60, 250, 200, 40, 5);
-		inputBg.fixedToCamera = true;
-		this.nameInputOverlay.add(inputBg);
+		 		// INPUT FIELD BACKGROUND
+                var inputBg = game.add.graphics();
+                inputBg.beginFill(0xFFFFFF, 1);
+                inputBg.lineStyle(2, 0x343434, 1);
+                inputBg.drawRoundedRect(-100, -20, 200, 40, 5);
+                inputBg.fixedToCamera = true;
+                inputBg.cameraOffset.setTo(160, 260);
+                this.nameInputOverlay.add(inputBg);
 
-		// NAME DISPLAY
-		this.nameInputField = game.add.bitmapText(70, 270, "ArialBlackWhite", "", 20);
-		this.nameInputField.fixedToCamera = true;
-		this.nameInputField.tint = 0x000000;
-		this.nameInputOverlay.add(this.nameInputField);
+                // NAME DISPLAY
+                this.nameInputField = game.add.bitmapText(160, 260, "ArialBlackWhite", "", 20);
+                this.nameInputField.anchor.setTo(0.5, 0.5);
+                this.nameInputField.fixedToCamera = true;
+                this.nameInputField.tint = 0x000000;
+                this.nameInputOverlay.add(this.nameInputField);
 
-		// SUBMIT BUTTON
-		var submitBg = game.add.graphics();
-		submitBg.beginFill(0x022C5C, 1);
-		submitBg.lineStyle(2, 0x0046A9, 1);
-		submitBg.drawRoundedRect(80, 320, 80, 40, 10);
-		submitBg.fixedToCamera = true;
-		this.nameInputOverlay.add(submitBg);
+                // SUBMIT BUTTON
+                var submitBg = game.add.graphics();
+                submitBg.beginFill(0x022C5C, 1);
+                submitBg.lineStyle(2, 0x0046A9, 1);
+                submitBg.drawRoundedRect(-100, -20, 200, 40, 10);
+                submitBg.fixedToCamera = true;
+                submitBg.cameraOffset.setTo(160, 320);
+                this.nameInputOverlay.add(submitBg);
 
-		this.nameInputSubmit = game.add.bitmapText(120, 340, "ArialBlackWhite", "SUBMIT", 16);
-		this.nameInputSubmit.anchor.setTo(0.5, 0.5);
-		this.nameInputSubmit.fixedToCamera = true;
-		this.nameInputSubmit.inputEnabled = true;
-		this.nameInputSubmit.input.useHandCursor = true;
-		this.nameInputSubmit.events.onInputUp.add(this.submitScore, this);
-		this.nameInputOverlay.add(this.nameInputSubmit);
+                this.nameInputSubmit = game.add.bitmapText(160, 320, "ArialBlackWhite", "SUBMIT", 16);
+                this.nameInputSubmit.anchor.setTo(0.5, 0.5);
+                this.nameInputSubmit.fixedToCamera = true;
+                this.nameInputSubmit.inputEnabled = true;
+                this.nameInputSubmit.input.useHandCursor = true;
+                this.nameInputSubmit.events.onInputUp.add(this.submitScore, this);
+                this.nameInputOverlay.add(this.nameInputSubmit);
 
-		// CANCEL BUTTON
-		var cancelBg = game.add.graphics();
-		cancelBg.beginFill(0x383838, 1);
-		cancelBg.lineStyle(2, 0x707070, 1);
-		cancelBg.drawRoundedRect(180, 320, 80, 40, 10);
-		cancelBg.fixedToCamera = true;
-		this.nameInputOverlay.add(cancelBg);
+                // BACK TO MENU BUTTON
+                var cancelBg = game.add.graphics();
+                cancelBg.beginFill(0x383838, 1);
+                cancelBg.lineStyle(2, 0x707070, 1);
+                cancelBg.drawRoundedRect(-100, -20, 200, 40, 10);
+                cancelBg.fixedToCamera = true;
+                cancelBg.cameraOffset.setTo(160, 380);
+                this.nameInputOverlay.add(cancelBg);
 
-		this.nameInputCancel = game.add.bitmapText(220, 340, "ArialBlackWhite", "CANCEL", 16);
-		this.nameInputCancel.anchor.setTo(0.5, 0.5);
-		this.nameInputCancel.fixedToCamera = true;
-		this.nameInputCancel.inputEnabled = true;
-		this.nameInputCancel.input.useHandCursor = true;
-        this.nameInputCancel.events.onInputUp.add(this.cancelNameInput, this);
-        this.nameInputOverlay.add(this.nameInputCancel);
+                this.nameInputCancel = game.add.bitmapText(160, 380, "ArialBlackWhite", "BACK TO MENU", 16);
+                this.nameInputCancel.anchor.setTo(0.5, 0.5);
+                this.nameInputCancel.fixedToCamera = true;
+                this.nameInputCancel.inputEnabled = true;
+                this.nameInputCancel.input.useHandCursor = true;
+                this.nameInputCancel.events.onInputUp.add(this.cancelNameInput, this);
+                this.nameInputOverlay.add(this.nameInputCancel);
 
 		// HIDE INITIALLY
 		this.nameInputOverlay.visible = false;
