@@ -36,7 +36,6 @@
   let leftPaddle, leftUpStopper, leftDownStopper, isLeftPaddleUp;
   let rightPaddle, rightUpStopper, rightDownStopper, isRightPaddleUp;
   let bottomReset, shooterReset;
-  let isSpringCharging, springStartTime;
 
   function load() {
     init();
@@ -77,8 +76,6 @@
     $highScore.text(highScore);
     isLeftPaddleUp = false;
     isRightPaddleUp = false;
-    isSpringCharging = false;
-    springStartTime = 0;
   }
 
   function createStaticBodies() {
@@ -244,9 +241,6 @@
         isLeftPaddleUp = true;
       } else if (e.which === 191) {
         isRightPaddleUp = true;
-      } else if (e.which === 32 && !isSpringCharging) {
-        isSpringCharging = true;
-        springStartTime = Date.now();
       }
     });
     $('body').on('keyup', function(e) {
@@ -254,10 +248,6 @@
         isLeftPaddleUp = false;
       } else if (e.which === 191) {
         isRightPaddleUp = false;
-      } else if (e.which === 32 && isSpringCharging) {
-        let charge = Math.min((Date.now() - springStartTime) * 0.02, 30);
-        Matter.Body.setVelocity(pinball, { x: 0, y: -10 - charge });
-        isSpringCharging = false;
       }
     });
 
@@ -309,6 +299,14 @@
     createPinball();
   });
 
+  $('#highscore-button').on('click', function() {
+    showHighScores();
+  });
+
+  $('#close-highscore').on('click', function() {
+    $('#highscore-modal').addClass('hidden');
+  });
+
   function getHighScores() {
     return JSON.parse(localStorage.getItem(HIGH_SCORES_KEY)) || [];
   }
@@ -327,6 +325,15 @@
     getHighScores().forEach(s => {
       list.append(`<li>${s.name}: ${s.score}</li>`);
     });
+  }
+
+  function showHighScores() {
+    let list = $('#highscore-list');
+    list.empty();
+    getHighScores().forEach(s => {
+      list.append(`<li>${s.name}: ${s.score}</li>`);
+    });
+    $('#highscore-modal').removeClass('hidden');
   }
 
   function rand(min, max) {
@@ -405,6 +412,7 @@
 
   $('#start-button').on('click', function() {
     $(this).addClass('hidden');
+    $('#highscore-button').addClass('hidden');
     $('.container').removeClass('hidden');
     load();
   });

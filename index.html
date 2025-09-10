@@ -11,6 +11,7 @@
 <body>
   <a class="home-button" href="https://singaseongj.github.io/">Home</a>
   <button id="start-button" class="start-button">Start</button>
+  <button id="highscore-button" class="highscore-button">High Scores</button>
   <div class="container hidden">
     <div class="score current-score">score<br><span></span></div>
     <div class="score high-score">high score<br><span></span></div>
@@ -26,6 +27,13 @@
           <ol id="leaderboard-list"></ol>
         </div>
       </div>
+    </div>
+  </div>
+  <div id="highscore-modal" class="game-over hidden">
+    <div class="game-over-content">
+      <h2>High Scores</h2>
+      <ol id="highscore-list"></ol>
+      <button id="close-highscore">Close</button>
     </div>
   </div>
   <script src="pinball.js"></script>
