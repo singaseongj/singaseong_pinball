@@ -515,22 +515,6 @@ Pinball.Game = function(game)
 
 	this.audioPlayer = null;
 
-	// NEW: overlay + leaderboard + tabs
-	this.overlayGroup = null;
-	this.overlayDim = null;
-	this.overlayPanel = null;
-	this.overlayTitle = null;
-	this.overlayTextGroup = null;
-	this.closeBtn = null;
-
-	this.leaderboardBtn = null;
-	this.leaderboardBtnText = null;
-
-	this.leftTab = null;
-	this.rightTab = null;
-	this.leftTabDown = false;
-	this.rightTabDown = false;
-
 	// SCALING THE CANVAS SIZE FOR THE GAME
 	function resizeF()
 		{
@@ -546,9 +530,6 @@ Pinball.Game = function(game)
 
 	window.addEventListener("resize", resizeF);
 	};
-
-// NEW: Leaderboard endpoint (uses your provided web app)
-Pinball.LEADERBOARD_URL = Pinball.LEADERBOARD_URL || "https://script.google.com/macros/s/AKfycbz5pBJY9qeYThLk1GGDAXAibEey9_hazpRi3PbaY3MuU0h2_1tr8OfSrzTa5IUJMj0/exec";
 
 Pinball.Game.prototype = {
 
@@ -622,11 +603,6 @@ Pinball.Game.prototype = {
 		this.isMobileDevice = null;
 
 		this.audioPlayer = null;
-
-		// NEW: overlay/tab state reset
-		this.overlayGroup = null;
-		this.leftTabDown = false;
-		this.rightTabDown = false;
 		},
 
 	create: function()
@@ -805,8 +781,7 @@ Pinball.Game.prototype = {
 		// ENABLING THE BOX2D PHYSICS
 		game.physics.startSystem(Phaser.Physics.BOX2D);
 		game.physics.box2d.ptmRatio = 500;
-		// CHANGED: slightly lower gravity for calmer ball
-		game.physics.box2d.gravity.y = 4200; 
+		game.physics.box2d.gravity.y = 5000; // LARGE GRAVITY TO MAKE SCENE FEEL SMALLER
 		game.physics.box2d.friction = 0.1;
 
 		// CREATING THE PINBALL BOARD
@@ -826,6 +801,7 @@ Pinball.Game.prototype = {
 		// ADDING THE SMALL CIRCLES
 		for(var i = 0; i < this.smallCircles.length / 2; i++)
 			{
+			// ADDING THE SMALL CIRCLE
 			this.pinballBoard.addCircle(0.35 * this.PTM, this.smallCircles[2 * i + 0], this.smallCircles[2 * i + 1]);
 			}
 
@@ -835,20 +811,25 @@ Pinball.Game.prototype = {
 			var mediumCircleX = Math.floor(this.mediumCircles[2 * i + 0] * 0.10 - 11.75);
 			var mediumCircleY = Math.floor(this.mediumCircles[2 * i + 1] * 0.10 - 11.75);
 
+			// ADDING THE CIRCLE TO THE MEDIUM CIRCLE LIST
 			this.mediumCirclesList[i] = this.pinballBoard.addCircle(1 * this.PTM, this.mediumCircles[2 * i + 0], this.mediumCircles[2 * i + 1]);
 			this.mediumCirclesList[i].circleIndex = i;
 
+			// ADDING THE MEDIUM CIRCLE SHADOW
 			var tempCircleShadow = this.add.sprite(mediumCircleX + 1,mediumCircleY + 1, "imageGameMediumCircle");
 			tempCircleShadow.tint = 0x343434;
 			tempCircleShadow.alpha = 0.8;
 
+			// ADDING THE MEDIUM CIRCLE HIT SPRITE
 			this.mediumCirclesHitList[i] = game.add.graphics(mediumCircleX, mediumCircleY);
 			this.mediumCirclesHitList[i].beginFill(0xFFFF00, 0.5);
 			this.mediumCirclesHitList[i].drawCircle(12, 12, 27);
 			this.mediumCirclesHitList[i].visible = false;
 
+			// ADDING THE MEDIUM CIRCLE SPRITE
 			this.add.sprite(mediumCircleX,mediumCircleY, "imageGameMediumCircle");
 
+			// ADDING THE MEDIUM CIRCLE GLOW SPRITE
 			this.mediumCirclesGlowList[i] = game.add.graphics(mediumCircleX, mediumCircleY);
 			this.mediumCirclesGlowList[i].beginFill(0xFFFFFF, 0.4);
 			this.mediumCirclesGlowList[i].drawCircle(12, 12, 24);
@@ -861,19 +842,24 @@ Pinball.Game.prototype = {
 			var largeCircleX = Math.floor(this.largeCircles[2 * i + 0] * 0.10 - 26.45);
 			var largeCircleY = Math.floor(this.largeCircles[2 * i + 1] * 0.10 - 26.45);
 
+			// ADDING THE CIRCLE TO THE LARGE CIRCLE LIST
 			this.largeCirclesList[i] = this.pinballBoard.addCircle(2.8 * this.PTM, this.largeCircles[2 * i + 0], this.largeCircles[2 * i + 1]);
 			this.largeCirclesList[i].circleIndex = i;
 
+			// ADDING THE LARGE CIRCLE SHADOW
 			var tempCircleShadow = this.add.sprite(largeCircleX + 1,largeCircleY + 1,"imageGameLargeCircle");
 			tempCircleShadow.tint = 0x343434;
 
+			// ADDING THE LARGE CIRCLE HIT SPRITE
 			this.largeCirclesHitList[i] = game.add.graphics(largeCircleX, largeCircleY);
 			this.largeCirclesHitList[i].beginFill(0xFFFF00, 0.4);
 			this.largeCirclesHitList[i].drawCircle(27.5, 27.5, 58);
 			this.largeCirclesHitList[i].visible = false;
 
+			// ADDING THE LARGE CIRCLE SPRITE
 			this.add.sprite(largeCircleX,largeCircleY,"imageGameLargeCircle");
 
+			// ADDING THE LARGE CIRCLE GLOW SPRITE
 			this.largeCirclesGlowList[i] = game.add.graphics(largeCircleX, largeCircleY);
 			this.largeCirclesGlowList[i].beginFill(0xFFFFFF, 0.5);
 			this.largeCirclesGlowList[i].drawCircle(27, 27, 54);
@@ -897,33 +883,40 @@ Pinball.Game.prototype = {
 		this.ballBody = new Phaser.Physics.Box2D.Body(this.game, null, this.ballStart[0] * this.PTM, this.ballStart[1] * this.PTM);
 		this.ballBody.setCircle(0.64 * this.PTM);
 		this.ballBody.bullet = true;
-		// NEW: small damping to reduce runaway speed
-		this.ballBody.linearDamping = 0.12;
 
 		// SETTING A CALLBACK WHEN THE BALL HITS THE FIRST GUTTER
 		this.ballBody.setFixtureContactCallback(this.gutterFixture1, function()
 			{
-			// NEW: End game flow (no instant reset)
+			// CLEARING THE SCORE
+			this.updateScore(0);
+
+			// SETTING THAT THE GAME IS OVER
 			this.gameOver = true;
-			this.endGame();
 			}, this);
 
 		// SETTING A CALLBACK WHEN THE BALL HITS THE SECOND GUTTER (FAILSAFE)
 		this.ballBody.setFixtureContactCallback(this.gutterFixture2, function()
 			{
-			// NEW: End game flow (no instant reset)
+			// CLEARING THE SCORE
+			this.updateScore(0);
+
+			// SETTING THAT THE GAME IS OVER
 			this.gameOver = true;
-			this.endGame();
 			}, this);
 
 		// SETTING A CALLBACK WHEN THE BALL HITS THE LAUNCHER
 		this.ballBody.setFixtureContactCallback(this.launcherFixture, function()
 			{
+			// SETTING THAT THE LAUNCHER WILL BE MOVING
 			this.launcherIsMoving = true;
+
+			// SETTING THAT THE LAUNCHER WILL BE GOING UP
 			this.launcherGoingUp = true;
 
+			// CHECKING IF THE SOUND IS ENABLED
 			if (GAME_SOUND_ENABLED==true)
 				{
+				// PLAYING THE LAUNCHER SOUND
 				this.audioPlayer = this.add.audio("soundLauncher");
 				this.audioPlayer.play();
 				}
@@ -953,22 +946,33 @@ Pinball.Game.prototype = {
 		// LOOPING ALL THE MEDIUM CIRCLES IN ORDER TO SET A CALLBACK WHEN THE BALL HITS A MEDIUM CIRCLE
 		for(var i = 0; i < this.mediumCirclesList.length; i++)
 			{
+			// SETTING THE CALLBACK AND WHAT WILL HAPPEN WHEN THE BALL HITS A MEDIUM CIRCLE
 			this.ballBody.setFixtureContactCallback(this.mediumCirclesList[i], function (a,b,c,d,e)
 				{
+				// CHECKING IF THE SOUND IS ENABLED
 				if (GAME_SOUND_ENABLED==true)
 					{
+					// PLAYING THE HIT SOUND
 					this.audioPlayer = this.add.audio("soundHit");
 					this.audioPlayer.play();
 					}
 
+				// SHOWING THE MEDIUM CIRCLE HIT SPRITE
 				this.mediumCirclesHitList[d.circleIndex].visible = true;
+
+				// SHOWING THE MEDIUM CIRCLE GLOW SPRITE
 				this.mediumCirclesGlowList[d.circleIndex].visible = true;
 
+				// ADDING 10 POINTS TO THE SCORE
 				this.updateScore(this.scoreValue + 10);
 
+				// WAITING 200 MS
 				game.time.events.add(200, function()
 					{
+					// HIDING THE MEDIUM CIRCLE HIT SPRITE
 					game.state.states["Pinball.Game"].mediumCirclesHitList[d.circleIndex].visible = false;
+
+					// HIDING THE MEDIUM CIRCLE GLOW SPRITE
 					game.state.states["Pinball.Game"].mediumCirclesGlowList[d.circleIndex].visible = false;
 					});
 				}
@@ -978,22 +982,33 @@ Pinball.Game.prototype = {
 		// LOOPING ALL THE LARGE CIRCLES IN ORDER TO SET A CALLBACK WHEN THE BALL HITS A LARGE CIRCLE
 		for(var i = 0; i < this.largeCirclesList.length; i++)
 			{
+			// SETTING THE CALLBACK AND WHAT WILL HAPPEN WHEN THE BALL HITS A LARGE CIRCLE
 			this.ballBody.setFixtureContactCallback(this.largeCirclesList[i], function (a,b,c,d,e)
 				{
+				// CHECKING IF THE SOUND IS ENABLED
 				if (GAME_SOUND_ENABLED==true)
 					{
+					// PLAYING THE HIT SOUND
 					this.audioPlayer = this.add.audio("soundHit");
 					this.audioPlayer.play();
 					}
 
+				// SHOWING THE LARGE CIRCLE HIT SPRITE
 				this.largeCirclesHitList[d.circleIndex].visible = true;
+
+				// SHOWING THE LARGE CIRCLE GLOW SPRITE
 				this.largeCirclesGlowList[d.circleIndex].visible = true;
 
+				// ADDING 20 POINTS TO THE SCORE
 				this.updateScore(this.scoreValue + 20);
 
+				// WAITING 200 MS
 				game.time.events.add(200, function()
 					{
+					// HIDING THE LARGE CIRCLE HIT SPRITE
 					game.state.states["Pinball.Game"].largeCirclesHitList[d.circleIndex].visible = false;
+
+					// HIDING THE LARGE CIRCLE GLOW SPRITE
 					game.state.states["Pinball.Game"].largeCirclesGlowList[d.circleIndex].visible = false;
 					});
 				}
@@ -1043,7 +1058,7 @@ Pinball.Game.prototype = {
 		this.rightFlipperSprite.position.x = this.rightFlipper.x * 0.10;
 		this.rightFlipperSprite.position.y = this.rightFlipper.y * 0.10;
 
-		// SETTING THE FLIPPER JOINTS
+		// SETTING THE FLIPPER JOINTS							(BODYA, BODYB, AX, AY, BX, BY, MOTORSPEED, MOTORTORQUE, MOTORENABLED, LOWERLIMIT, UPPERLIMIT, LIMITENABLED)
 		this.flipperJoints[0] = game.physics.box2d.revoluteJoint(this.pinballBoard, this.leftFlipper,   -8 * this.PTM, -7.99956 * this.PTM, 0, 0, 2, 100, false, -25, 25, true);
 		this.flipperJoints[1] = game.physics.box2d.revoluteJoint(this.pinballBoard, this.rightFlipper, 6.4 * this.PTM, -7.99956 * this.PTM, 0, 0, 2, 100, false, -25, 25, true);
 
@@ -1090,25 +1105,6 @@ Pinball.Game.prototype = {
 		this.highScoreLabel = game.add.bitmapText(66, -523.25, "ArialBlackWhite", this.getHighscore(), 27);
 		this.highScoreLabel.height = 32;
 
-		// NEW: Highscore area clickable to show leaderboard
-		this.highScoreBackground.inputEnabled = true;
-		this.highScoreBackground.input.useHandCursor = true;
-		this.highScoreBackground.events.onInputUp.add(function(){ this.showLeaderboard(); }, this);
-		this.highScoreIcon.inputEnabled = true;
-		this.highScoreIcon.input.useHandCursor = true;
-		this.highScoreIcon.events.onInputUp.add(function(){ this.showLeaderboard(); }, this);
-
-		// NEW: Dedicated LEADERBOARD button
-		this.leaderboardBtn = game.add.graphics();
-		this.leaderboardBtn.beginFill(0x0066CC, 1);
-		this.leaderboardBtn.lineStyle(2, 0x0046A9, 1);
-		this.leaderboardBtn.drawRoundedRect(160, -530, 145, 40, 10);
-		this.leaderboardBtn.inputEnabled = true;
-		this.leaderboardBtn.input.useHandCursor = true;
-		this.leaderboardBtn.events.onInputUp.add(function(){ this.showLeaderboard(); }, this);
-		this.leaderboardBtnText = game.add.bitmapText(172, -523.5, "ArialBlackWhite", "LEADERBOARD", 20);
-		this.leaderboardBtnText.height = 24;
-
 		// ADDING THE SOUND HANDLER ON BACKGROUND
 		this.soundHandlerOnBackground = game.add.graphics();
 		this.soundHandlerOnBackground.beginFill(0x022C5C, 1);
@@ -1118,13 +1114,18 @@ Pinball.Game.prototype = {
 		this.soundHandlerOnBackground.input.useHandCursor = true;
 		this.soundHandlerOnBackground.events.onInputUp.add(function()
 			{
+			// SHOWING THE SOUND HANDLER OFF BACKGROUND AND ICON
 			this.soundHandlerOffBackground.visible = true;
 			this.soundHandlerOffSprite.visible = true;
 
+			// HIDING THE SOUND HANDLER ON BACKGROUND AND ICON
 			this.soundHandlerOnBackground.visible = false;
 			this.soundHandlerOnSprite.visible = false;
 
+			// SETTING THAT THE SOUND IS DISABLED
 			GAME_SOUND_ENABLED = false;
+
+			// SAVING THE SOUND PREFERENCE
 			this.setBooleanSetting("GAME_SOUND_ENABLED", false);
 			},this);
 
@@ -1140,33 +1141,42 @@ Pinball.Game.prototype = {
 		this.soundHandlerOffBackground.input.useHandCursor = true;
 		this.soundHandlerOffBackground.events.onInputUp.add(function()
 			{
+			// SHOWING THE SOUND HANDLER ON BACKGROUND AND ICON
 			this.soundHandlerOnBackground.visible = true;
 			this.soundHandlerOnSprite.visible = true;
 
+			// HIDING THE SOUND HANDLER OFF BACKGROUND AND ICON
 			this.soundHandlerOffBackground.visible = false;
 			this.soundHandlerOffSprite.visible = false;
 
+			// SETTING THAT THE SOUND IS ENABLED
 			GAME_SOUND_ENABLED = true;
+
+			// SAVING THE SOUND PREFERENCE
 			this.setBooleanSetting("GAME_SOUND_ENABLED", true);
 			},this);
 
-		// ADDING THE SOUND HANDLER OFF SPRITE
+		// ADDING THE SOUND HANDLER ON SPRITE
 		this.soundHandlerOffSprite = game.add.sprite(-19, -521.25, "imageGameSoundOff");
 
 		// CHECKING IF THE SOUND IS ENABLED
 		if (GAME_SOUND_ENABLED==true)
 			{
+			// SHOWING THE SOUND ON BUTTON
 			this.soundHandlerOnBackground.visible = true;
 			this.soundHandlerOnSprite.visible = true;
 
+			// HIDING THE SOUND OFF BUTTON
 			this.soundHandlerOffBackground.visible = false;
 			this.soundHandlerOffSprite.visible = false;
 			}
 		else
 			{
+			// SHOWING THE SOUND OFF BUTTON
 			this.soundHandlerOffBackground.visible = true;
 			this.soundHandlerOffSprite.visible = true;
 
+			// SHOWING THE SOUND ON BUTTON
 			this.soundHandlerOnBackground.visible = true;
 			this.soundHandlerOnSprite.visible = true;
 			}
@@ -1217,37 +1227,15 @@ Pinball.Game.prototype = {
 		this.buttonBHandler.events.onInputDown.add(function(){this.buttonBHandler.isDown=true;this.buttonBNormal.visible=false;this.buttonBPressed.visible=true;this.update();},this);
 		this.buttonBHandler.events.onInputUp.add(function(){this.buttonBHandler.isDown=false;this.buttonBNormal.visible=true;this.buttonBPressed.visible=false;},this);
 
-		// NEW: Side tab buttons (act like arrow keys)
-		this.leftTabDown = false;
-		this.rightTabDown = false;
-
-		this.leftTab = game.add.graphics();
-		this.leftTab.beginFill(0x000000, 0.15);
-		this.leftTab.drawRoundedRect(-8, -480, 26, 360, 6);
-		this.leftTab.endFill();
-		this.leftTab.inputEnabled = true;
-		this.leftTab.fixedToCamera = true;
-		this.leftTab.input.useHandCursor = true;
-		this.leftTab.events.onInputDown.add(function(){ this.leftTabDown = true; this.update(); }, this);
-		this.leftTab.events.onInputUp.add(function(){ this.leftTabDown = false; }, this);
-
-		this.rightTab = game.add.graphics();
-		this.rightTab.beginFill(0x000000, 0.15);
-		this.rightTab.drawRoundedRect(302, -480, 26, 360, 6);
-		this.rightTab.endFill();
-		this.rightTab.inputEnabled = true;
-		this.rightTab.fixedToCamera = true;
-		this.rightTab.input.useHandCursor = true;
-		this.rightTab.events.onInputDown.add(function(){ this.rightTabDown = true; this.update(); }, this);
-		this.rightTab.events.onInputUp.add(function(){ this.rightTabDown = false; }, this);
-
 		// CHECKING IF IT IS A MOBILE DEVICE
 		if (this.isMobileDevice==false)
 			{
+			// HIDING THE BUTTON A
 			this.buttonANormal.visible = false;
 			this.buttonAPressed.visible = false;
 			this.buttonAHandler.visible = false;
 
+			// HIDING THE BUTTON B
 			this.buttonBNormal.visible = false;
 			this.buttonBPressed.visible = false;
 			this.buttonBHandler.visible = false;
@@ -1273,10 +1261,20 @@ Pinball.Game.prototype = {
 
 	update: function()
 		{
-		// CHANGED: If gameOver, we keep physics paused via overlay; no auto-respawn here
-		if(this.gameOver===true)
+		// CHECKING IF THE GAME IS OVER
+		if(this.gameOver==true)
 			{
-			// do nothing; waiting for user action in endGame() menu
+			// RESTORING THE BALL THE STARTING POSITION
+			this.ballBody.x = this.ballStart[0]*this.PTM;
+			this.ballBody.y = this.ballStart[1]*this.PTM;
+
+			// CLEARING THE BALL VELOCITY
+			this.ballBody.velocity.x = 0;
+			this.ballBody.velocity.y = 0;
+			this.ballBody.angularVelocity = 0;
+
+			// SETTING THAT THE GAME IS NOT OVER
+			this.gameOver = false;
 			}
 
 		// THE BALL SPRITE MUST ALWAYS FOLLOW THE BOX2D BALL BODY
@@ -1289,50 +1287,64 @@ Pinball.Game.prototype = {
 		// THE RIGHT FLIPPER SPRITE MUST ALWAYS FOLLOW THE BOX2D RIGHT FLIPPER
 		this.rightFlipperSprite.angle = this.rightFlipper.angle;
 
-		// NEW: aggregate inputs
-		var leftPressed  = (this.cursors.left.isDown===true)  || (this.keyA.isDown===true) || (this.buttonAHandler.isDown===true) || this.leftTabDown;
-		var rightPressed = (this.cursors.right.isDown===true) || (this.keyD.isDown===true) || (this.buttonBHandler.isDown===true) || this.rightTabDown;
-
-		// LEFT
-		if(leftPressed)
+		// CHECKING IF PRESSING THE LEFT OR 'A' KEY
+		if(this.cursors.left.isDown==true || this.keyA.isDown==true || this.buttonAHandler.isDown==true)
 			{
-			if (GAME_SOUND_ENABLED===true)
+			// CHECKING IF THE SOUND IS ENABLED
+			if (GAME_SOUND_ENABLED==true)
 				{
+				// CHECKING IF THE LEFT FLIPPER IS DOWN
 				if (this.flipperJoints[0].m_motorSpeed!=-15)
 					{
+					// PLAYING THE FLIPPER SOUND
 					this.audioPlayer = this.add.audio("soundFlipper");
 					this.audioPlayer.play();
 					}
 				}
+
+			// ENABLING THE LEFT FLIPPER
 			this.flipperJoints[0].m_enableMotor = true;
+
+			// RAISING THE LEFT FLIPPER
 			this.flipperJoints[0].SetMotorSpeed(-15);
 			}
 			else
 			{
+			// CHECKING IF THE LEFT FLIPPER MUST BE LOWERING
 			if (-25>this.leftFlipper.angle)
 				{
+				// LOWERING THE LEFT FLIPPER
 				this.flipperJoints[0].SetMotorSpeed(15);
 				}
 			}
 
-		// RIGHT
-		if(rightPressed)
+		// CHECKING IF PRESSING THE RIGHT OR 'D' KEY
+		if(this.cursors.right.isDown==true || this.keyD.isDown==true || this.buttonBHandler.isDown==true)
 			{
-			if (GAME_SOUND_ENABLED===true)
+			// CHECKING IF THE SOUND IS ENABLED
+			if (GAME_SOUND_ENABLED==true)
 				{
+				// CHECKING IF THE RIGHT FLIPPER IS DOWN
 				if (this.flipperJoints[1].m_motorSpeed!=15)
 					{
+					// PLAYING THE FLIPPER SOUND
 					this.audioPlayer = this.add.audio("soundFlipper");
 					this.audioPlayer.play();
 					}
 				}
+
+			// ENABLING THE RIGHT FLIPPER
 			this.flipperJoints[1].m_enableMotor = true;
+
+			// RAISING THE RIGHT FLIPPER
 			this.flipperJoints[1].SetMotorSpeed(15);
 			}
 			else
 			{
+			// CHECKING IF THE RIGHT FLIPPER MUST BE LOWERING
 			if (25<this.rightFlipper.angle)
 				{
+				// LOWERING THE RIGHT FLIPPER
 				this.flipperJoints[1].SetMotorSpeed(-15);
 				}
 			}
@@ -1340,21 +1352,28 @@ Pinball.Game.prototype = {
 		// CHECKING IF THE LAUNCHER IS MOVING
 		if (this.launcherIsMoving==true)
 			{
+			// CHECKING IF THE LAUNCHER IS GOING UP
 			if (this.launcherGoingUp==true)
 				{
+				// MOVING UP THE LAUNCHER
 				this.launcherSprite.position.y = this.launcherSprite.position.y - 10;
 				}
 				else
 				{
+				// MOVING DOWN THE LAUNCHER
 				this.launcherSprite.position.y = this.launcherSprite.position.y + 10;
 				}
 
+			// CHECKING IF THE LAUNCHER HITS THE TOP LIMIT
 			if (this.launcherSprite.position.y<=-160)
 				{
+				// SETTING THAT THE LAUNCHER WILL BE GOING DOWN
 				this.launcherGoingUp = false;
 				}
+			// CHECKING IF THE LAUNCHER HITS THE BOTTOM LIMIT
 			else if (this.launcherSprite.position.y>=-100)
 				{
+				// SETTING THAT THE LAUNCHER WILL NOT BE MOVING ANY MORE
 				this.launcherIsMoving = false;
 				}
 			}
@@ -1362,27 +1381,42 @@ Pinball.Game.prototype = {
 
 	render: function()
 		{
+		// CHECKING IF THE GAME IS RUNNING IN DEBUG MODE
 		if (Pinball.showDebug==true)
 			{
+			// SHOWING THE DEBUG LAYOUT
 			game.debug.box2dWorld();
 			}
 		},
 
 	updateScore: function(newScore)
 		{
+		// CHECKING IF THE USER HITS THE MAXIMUM SCORE POSSIBLE
 		if (newScore>9999)
 			{
+			// UPDATING THE USER SCORE
 			newScore = 9999;
 			}
 
+		// UPDATING THE SCORE WITH THE NEW VALUE
 		this.scoreValue = newScore;
+
+		// UPDATING THE SCORE WITH THE NEW VALUE
 		this.scoreLabel.setText(newScore);
+
+		// UPDATING THE SCORE SHADOW WITH THE NEW VALUE
 		this.scoreLabelShadow.setText(newScore);
 
+		// CHECKING IF THE CURRENT SCORE HITS THE HIGH SCORE
 		if (this.scoreValue>this.getHighscore())
 			{
+			// SETTING THE NEW HIGHSCORE
 			this.setHighscore(this.scoreValue);
+
+			// UPDATING THE HIGHSCORE WITH THE NEW VALUE
 			this.highScoreLabel.setText(newScore);
+
+			// UPDATING THE HIGHSCORE SHADOW WITH THE NEW VALUE
 			this.highScoreLabelShadow.setText(newScore);
 			}
 		},
@@ -1428,7 +1462,7 @@ Pinball.Game.prototype = {
 				}
 			document.cookie = name + "=" + (value || "")  + expires + "; Secure; path=/";
 			}
-		catch(err)
+			catch(err)
 			{
 			}
 		},
@@ -1449,7 +1483,7 @@ Pinball.Game.prototype = {
 				}
 			document.cookie = name + "=" + (value || "")  + expires + "; Secure; path=/";
 			}
-		catch(err)
+			catch(err)
 			{
 			}
 		},
@@ -1457,215 +1491,28 @@ Pinball.Game.prototype = {
 	getCurrentTime: function()
 		{
 		return window.performance && window.performance.now && window.performance.timing && window.performance.timing.navigationStart ? window.performance.now() + window.performance.timing.navigationStart : Date.now();
-		},
-
-	// ================================
-	// === NEW: Overlay / UI system ===
-	// ================================
-	createOverlayRoot: function() {
-		if (this.overlayGroup) { return; }
-		this.overlayGroup = game.add.group();
-		this.overlayGroup.fixedToCamera = true;
-		this.overlayGroup.cameraOffset.setTo(0, 0);
-		this.overlayGroup.visible = false;
-
-		// Dim background
-		this.overlayDim = game.add.graphics(0,0, this.overlayGroup);
-		this.overlayDim.beginFill(0x000000, 0.6);
-		this.overlayDim.drawRect(0, 0, 320, 608);
-		this.overlayDim.endFill();
-
-		// Panel
-		this.overlayPanel = game.add.graphics(0,0, this.overlayGroup);
-		this.overlayPanel.beginFill(0x1A1A1A, 1);
-		this.overlayPanel.lineStyle(2, 0x444444, 1);
-		this.overlayPanel.drawRoundedRect(20, 80, 280, 448, 14);
-		this.overlayPanel.endFill();
-
-		this.overlayTitle = game.add.bitmapText(40, 100, "ArialBlackWhite", "", 26, this.overlayGroup);
-		this.overlayTitle.height = 32;
-
-		// Container for dynamic content
-		this.overlayTextGroup = game.add.group(this.overlayGroup);
-
-		// Close button (X)
-		this.closeBtn = this.createUIButton(262, 90, 28, 28, "X", (function(){
-			this.hideOverlay();
-		}).bind(this), this.overlayGroup);
-	},
-
-	createUIButton: function(x, y, w, h, label, onClick, parentGroup) {
-		var g = game.add.graphics(0,0, parentGroup || this.overlayGroup);
-		g.beginFill(0x0F4C81, 1);
-		g.lineStyle(2, 0x1C6FB5, 1);
-		g.drawRoundedRect(x, y, w, h, 8);
-		g.endFill();
-		g.inputEnabled = true;
-		g.input.useHandCursor = true;
-		g.events.onInputUp.add(onClick, this);
-
-		var t = game.add.bitmapText(x + 10, y + 6, "ArialBlackWhite", label, 20, parentGroup || this.overlayGroup);
-		t.height = 24;
-
-		return { box:g, label:t };
-	},
-
-	showOverlay: function(title) {
-		this.createOverlayRoot();
-		this.overlayTitle.setText(title || "");
-		this.overlayTextGroup.removeAll(true);
-		game.physics.box2d.pause();
-		this.overlayGroup.visible = true;
-	},
-
-	hideOverlay: function() {
-		if (!this.overlayGroup) return;
-		this.overlayGroup.visible = false;
-		if (!this.gameOver) {
-			game.physics.box2d.resume();
 		}
-	},
+	};
 
-	// ============================
-	// === NEW: Leaderboard UI  ===
-	// ============================
-	showLeaderboard: function() {
-		this.showOverlay("Leaderboard");
-		var loading = game.add.bitmapText(40, 140, "ArialBlackWhite", "Loading...", 22, this.overlayTextGroup);
-		loading.height = 26;
+// SETTING THE DEFAULT RENDERER MODE
+var rendererMode = Phaser.WEBGL;
 
-		this.httpGetJSON(Pinball.LEADERBOARD_URL).then((function(data){
-			loading.setText("");
-
-			var scores = (data && data.scores) ? data.scores : [];
-			if (!scores.length) {
-				loading.setText("No scores yet.");
-				return;
-			}
-
-			var y = 150;
-			var header = game.add.bitmapText(40, y, "ArialBlackWhite", "Rank   Name                 Score", 20, this.overlayTextGroup);
-			header.height = 24;
-			y += 28;
-
-			for (var i=0; i<Math.min(10, scores.length); i++) {
-				var rank = (i+1)+".".padEnd(5, " ");
-				var name = (scores[i].name || "Anonymous");
-				if (name.length > 18) name = name.slice(0,18)+"…";
-				name = (name).padEnd(21, " ");
-				var line = rank + name + (scores[i].score || 0);
-				var row = game.add.bitmapText(40, y, "ArialBlackWhite", line, 20, this.overlayTextGroup);
-				row.height = 24;
-				y += 26;
-			}
-
-			this.createUIButton(40, 440, 100, 36, "Refresh", this.showLeaderboard.bind(this));
-			this.createUIButton(180, 440, 100, 36, "Close", this.hideOverlay.bind(this));
-
-		}).bind(this)).catch((function(err){
-			loading.setText("Failed to load.");
-			console.error(err);
-		}).bind(this));
-	},
-
-	// ==================================
-	// === NEW: Game Over / Save Score ===
-	// ==================================
-	endGame: function() {
-		this.showOverlay("Game Over");
-		var finalScore = this.scoreValue;
-
-		var y0 = 160;
-		var msg = game.add.bitmapText(40, y0, "ArialBlackWhite", "Your score: " + finalScore, 22, this.overlayTextGroup);
-		msg.height = 26;
-
-		// Buttons
-		this.createUIButton(40, 220, 240, 40, "Play Again", (function(){
-			this.hideOverlay();
-			this.resetBallAndScore(true);
-		}).bind(this));
-
-		this.createUIButton(40, 270, 240, 40, "Main Menu", (function(){
-			this.gameOver = false;
-			this.hideOverlay();
-			game.state.start("Pinball.Menu", Phaser.Plugin.StateTransition.Out.SlideRight);
-		}).bind(this));
-
-		this.createUIButton(40, 320, 240, 40, "Save Score", (function(){
-			var name = window.prompt("Enter your name for the leaderboard:", "") || "Anonymous";
-			var payload = { name: name, score: finalScore };
-			var savingText = game.add.bitmapText(40, 380, "ArialBlackWhite", "Saving...", 20, this.overlayTextGroup);
-			savingText.height = 24;
-
-			this.httpPostJSON(Pinball.LEADERBOARD_URL, payload).then((function(resp){
-				savingText.setText("Saved!");
-				game.time.events.add(600, (function(){ this.showLeaderboard(); }).bind(this));
-			}).bind(this)).catch((function(err){
-				savingText.setText("Failed to save.");
-				console.error(err);
-			}).bind(this));
-		}).bind(this));
-
-		this.gameOver = true;
-	},
-
-	resetBallAndScore: function(resetScore) {
-		if (resetScore) { this.updateScore(0); }
-
-		this.ballBody.x = this.ballStart[0]*this.PTM;
-		this.ballBody.y = this.ballStart[1]*this.PTM;
-		this.ballBody.velocity.x = 0;
-		this.ballBody.velocity.y = 0;
-		this.ballBody.angularVelocity = 0;
-
-		this.leftFlipper.angle = 27;
-		this.rightFlipper.angle = -27;
-
-		this.gameOver = false;
-		game.physics.box2d.resume();
-	},
-
-	// ============================
-	// === NEW: HTTP helpers    ===
-	// ============================
-	httpGetJSON: function(url) {
-		if (window.fetch) {
-			return fetch(url, { method: "GET" }).then(function(r){ return r.json(); });
-		}
-		return new Promise(function(resolve, reject){
-			var xhr = new XMLHttpRequest();
-			xhr.open("GET", url, true);
-			xhr.onreadystatechange = function(){
-				if (xhr.readyState === 4) {
-					try { resolve(JSON.parse(xhr.responseText)); }
-					catch(e){ reject(e); }
-				}
-			};
-			xhr.onerror = reject;
-			xhr.send();
-		});
-	},
-
-	httpPostJSON: function(url, bodyObj) {
-		if (window.fetch) {
-			return fetch(url, {
-				method: "POST",
-				headers: {"Content-Type":"application/json"},
-				body: JSON.stringify(bodyObj)
-			}).then(function(r){ return r.json(); });
-		}
-		return new Promise(function(resolve, reject){
-			var xhr = new XMLHttpRequest();
-			xhr.open("POST", url, true);
-			xhr.setRequestHeader("Content-Type","application/json");
-			xhr.onreadystatechange = function(){
-				if (xhr.readyState === 4) {
-					try { resolve(JSON.parse(xhr.responseText)); }
-					catch(e){ reject(e); }
-				}
-			};
-			xhr.onerror = reject;
-			xhr.send(JSON.stringify(bodyObj));
-		});
+// CHECKING IF THE WEBGL RENDERER MODE IS NOT AVAILABLE
+if (isWebGLAvailable()==false)
+	{
+	// CHANGING THE RENDERER MODE
+	rendererMode = Phaser.CANVAS;
 	}
-};
+
+// CREATING THE GAME INSTANCE
+var config = {width: 320, height: 608, renderer: rendererMode, parent: "content", disableVisibilityChange: false};
+var game = new Phaser.Game(config);
+
+// CREATING THE STATES
+game.state.add("Pinball.Preloader", Pinball.Preloader);
+game.state.add("Pinball.Splash", Pinball.Splash);
+game.state.add("Pinball.Menu", Pinball.Menu);
+game.state.add("Pinball.Game", Pinball.Game);
+
+// STARTING THE GAME PRELOADER
+game.state.start("Pinball.Preloader");
