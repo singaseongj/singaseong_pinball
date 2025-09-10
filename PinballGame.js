@@ -1595,22 +1595,25 @@ Pinball.Game.prototype = {
 		this.nameInputCancel.fixedToCamera = true;
 		this.nameInputCancel.inputEnabled = true;
 		this.nameInputCancel.input.useHandCursor = true;
-		this.nameInputCancel.events.onInputUp.add(this.hideNameInput, this);
-		this.nameInputOverlay.add(this.nameInputCancel);
+        this.nameInputCancel.events.onInputUp.add(this.cancelNameInput, this);
+        this.nameInputOverlay.add(this.nameInputCancel);
 
 		// HIDE INITIALLY
 		this.nameInputOverlay.visible = false;
 		},
 
 	showGameOverOverlay: function()
-		{
-		this.gameOverActive = true;
-		this.gameOverScore.setText("SCORE: " + this.scoreValue);
-		this.gameOverOverlay.visible = true;
-		
-		// PAUSE PHYSICS
-		game.physics.box2d.pause();
-		},
+                {
+                this.gameOverActive = true;
+                this.gameOverScore.setText("SCORE: " + this.scoreValue);
+                this.gameOverOverlay.visible = true;
+
+                // PAUSE PHYSICS
+                game.physics.box2d.pause();
+
+                // SHOW NAME INPUT OVERLAY AUTOMATICALLY
+                this.showNameInput();
+                },
 
 	hideGameOverOverlay: function()
 		{
@@ -1631,14 +1634,19 @@ Pinball.Game.prototype = {
 		},
 
 	hideNameInput: function()
-		{
-		this.nameInputActive = false;
-		this.nameInputOverlay.visible = false;
-		this.showGameOverOverlay();
+                {
+                this.nameInputActive = false;
+                this.nameInputOverlay.visible = false;
 
-		// DISABLE KEYBOARD INPUT
-		game.input.keyboard.removeCallbacks();
-		},
+                // DISABLE KEYBOARD INPUT
+                game.input.keyboard.removeCallbacks();
+                },
+
+        cancelNameInput: function()
+                {
+                this.hideNameInput();
+                game.state.start("Pinball.Menu");
+                },
 
 	onKeyDown: function(event)
 		{
@@ -1661,22 +1669,25 @@ Pinball.Game.prototype = {
 		},
 
 	submitScore: function()
-		{
-		if (this.playerName.trim().length === 0)
-			{
-			// SHOW ERROR OR JUST RETURN
-			return;
-			}
+                {
+                if (this.playerName.trim().length === 0)
+                        {
+                        // SHOW ERROR OR JUST RETURN
+                        return;
+                        }
 
-		var scoreData = {
-			name: this.playerName.trim(),
-			score: this.scoreValue
-		};
+                var scoreData = {
+                        name: this.playerName.trim(),
+                        score: this.scoreValue
+                };
 
-		// SUBMIT TO LEADERBOARD
-		this.postToLeaderboard(scoreData);
-		this.hideNameInput();
-		},
+                // SUBMIT TO LEADERBOARD
+                this.postToLeaderboard(scoreData);
+                this.hideNameInput();
+
+                // SHOW LEADERBOARD THEN RETURN TO MENU
+                game.state.start("Pinball.Leaderboard", Phaser.Plugin.StateTransition.Out.SlideLeft, false, true);
+                },
 
 	postToLeaderboard: function(scoreData)
 		{
@@ -1978,8 +1989,13 @@ Pinball.Leaderboard = function(game) {};
 
 Pinball.Leaderboard.prototype = {
 
-	create: function()
-		{
+		init: function(autoReturn)
+                {
+                this.autoReturn = autoReturn || false;
+                },
+
+        create: function()
+                {
 		// BACKGROUND
 		this.add.tileSprite(0, 0, 320, 608, "imageGameBackground");
 
@@ -2008,8 +2024,17 @@ Pinball.Leaderboard.prototype = {
 		}, this);
 
 		// LOAD LEADERBOARD DATA
-		this.loadLeaderboard();
-		},
+                this.loadLeaderboard();
+
+                // AUTOMATICALLY RETURN TO MENU IF REQUESTED
+                if (this.autoReturn)
+                        {
+                        game.time.events.add(5000, function()
+                                {
+                                game.state.start("Pinball.Menu");
+                                }, this);
+                        }
+                },
 
 	loadLeaderboard: function()
 		{
