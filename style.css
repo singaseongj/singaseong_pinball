@@ -1,75 +1,124 @@
+@import url('https://fonts.googleapis.com/css?family=Hind');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 html, body {
   height: 100%;
-  margin: 0;
-  padding: 0;
   overflow: hidden;
-  touch-action: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  font-family: Arial, sans-serif;
-  text-align: center;
-  background: #f0f0f0;
-}
-
-#content {
-  position: fixed;
-  height: 100%;
-  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   margin: 0;
-  padding: 0;
-  z-index: 99;
+  color: #dee2e6;
+  background-color: #212529;
+  font-family: 'Hind', sans-serif;
+  text-transform: uppercase;
 }
 
-.background {
-  position: fixed;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  z-index: -1;
+.container {
+  position: relative;
+  line-height: 0;
 }
 
-#homeBtn {
-  position: fixed;
+.score {
+  position: absolute;
   top: 10px;
+  line-height: 1;
+}
+
+.score span {
+  font-size: 3.25rem;
+}
+
+.current-score {
   left: 10px;
-  padding: 5px 10px;
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  color: #333;
-  text-decoration: none;
 }
 
-#homeBtn:hover {
-  background: #e9e9e9;
+.high-score {
+  text-align: right;
+  right: 10px;
 }
 
-#game {
-  background: #111;
-  border: 2px solid #444;
-  display: block;
-  margin: 20px auto;
+.trigger {
+  appearance: none;
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  bottom: 10px;
+  border: 0;
+  border-radius: 50%;
+  color: inherit;
+  background-color: #e64980;
+  text-align: center;
+  line-height: 80px;
+  font-size: 1.25rem;
+  text-transform: inherit;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+}
+
+.left-trigger {
+  left: 10px;
+}
+
+.right-trigger {
+  right: 60px;
+}
+
+canvas {
+  overflow: hidden;
+  border-radius: 5px;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.75);
+}
+
+.game-over {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-transform: none;
+}
+
+.game-over-content {
+  text-align: center;
+}
+
+#leaderboard {
+  margin-top: 1rem;
+}
+
+#leaderboard-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 .hidden {
   display: none;
 }
 
-#scoreboard {
-  background: #fff;
-  border: 1px solid #ccc;
-  padding: 10px;
-  width: 200px;
-  margin: 20px auto;
+/* responsive scaling, because pinball tables are tall */
+@media (min-height: 0px) {
+  .container { transform: scale(0.25); }
 }
-
-#scoreWrap {
-  font-size: 20px;
-  color: #333;
+@media (min-height: 400px) {
+  .container { transform: scale(0.5); }
+}
+@media (min-height: 600px) {
+  .container { transform: scale(0.75); }
+}
+@media (min-height: 800px) {
+  .container { transform: scale(1); }
 }
