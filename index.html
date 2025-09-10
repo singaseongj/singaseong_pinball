@@ -3,37 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <title>Singaseong Pinball</title>
-  <link rel="apple-touch-icon" sizes="180x180" href="src/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="src/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="src/favicon-16x16.png">
-  <link rel="icon" href="src/favicon.ico">
-  <link rel="manifest" href="src/site.webmanifest">
   <link rel="stylesheet" href="style.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/matter-attractors@0.1.6/build/matter-attractors.min.js"></script>
 </head>
-<body oncontextmenu="return false;">
-  <div class="background"></div>
-  <div id="content">
-    <a id="homeBtn" href="https://singaseongj.github.io/">Home</a>
-    <h1>Singaseong Pinball</h1>
-    <div id="menu">
-      <button id="startBtn">Start Game</button>
-      <button id="highscoreBtn">High Scores</button>
-    </div>
-    <div id="scoreboard" class="hidden">
-      <h2>High Scores</h2>
-      <ol id="scores"></ol>
-      <button id="closeScore">Close</button>
-    </div>
-    <div id="gameArea" class="hidden">
-      <canvas id="game" width="400" height="600"></canvas>
-      <div id="scoreWrap">Score: <span id="score">0</span></div>
+<body>
+  <div class="container">
+    <div class="score current-score">score<br><span></span></div>
+    <div class="score high-score">high score<br><span></span></div>
+    <button class="trigger left-trigger">tap!</button>
+    <button class="trigger right-trigger">tap!</button>
+    <div id="game-over" class="game-over hidden">
+      <div class="game-over-content">
+        <p>Game Over!</p>
+        <label>Name: <input id="player-name" type="text"></label>
+        <button id="submit-score">Submit</button>
+        <div id="leaderboard">
+          <h2>Leaderboard</h2>
+          <ol id="leaderboard-list"></ol>
+        </div>
+      </div>
     </div>
   </div>
   <script src="pinball.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('worker.js');
-    }
-  </script>
 </body>
 </html>
