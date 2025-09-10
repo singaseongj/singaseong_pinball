@@ -45,18 +45,42 @@ body {
   right: 10px;
 }
 
+/* Floating Neon Home Button */
 .home-button {
   position: absolute;
   top: 10px;
   left: 10px;
-  padding: 6px 12px;
+  padding: 10px 18px;
   background-color: #ffeb3b;
   color: #000;
   border: 2px solid #000;
-  border-radius: 4px;
+  border-radius: 8px;
   font-weight: bold;
   text-decoration: none;
-  box-shadow: 0 0 10px #ffeb3b;
+  text-transform: uppercase;
+  box-shadow: 0 0 15px #ffeb3b,
+              0 0 30px #ffeb3b,
+              0 0 45px #ffeb3b;
+  animation: neonPulse 1.5s ease-in-out infinite alternate;
+  z-index: 10000;
+  transition: transform 0.2s ease-in-out;
+}
+
+.home-button:hover {
+  transform: scale(1.15);
+}
+
+@keyframes neonPulse {
+  from {
+    box-shadow: 0 0 10px #ffeb3b,
+                0 0 20px #ffeb3b,
+                0 0 30px #ffeb3b;
+  }
+  to {
+    box-shadow: 0 0 20px #fff176,
+                0 0 40px #fff176,
+                0 0 60px #fff176;
+  }
 }
 
 .menu {
