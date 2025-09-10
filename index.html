@@ -3,10 +3,165 @@
 <head>
   <meta charset="UTF-8">
   <title>Singaseong Pinball</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css?family=Hind');
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin: 0;
+      color: #dee2e6;
+      background-color: #212529;
+      font-family: 'Hind', sans-serif;
+      text-transform: uppercase;
+    }
+    .container {
+      position: relative;
+      line-height: 0;
+    }
+    .score {
+      position: absolute;
+      top: 10px;
+      line-height: 1;
+      z-index: 10;
+      pointer-events: none;
+    }
+    .score span {
+      font-size: 3.25rem;
+    }
+    .current-score {
+      left: 10px;
+    }
+    .high-score {
+      text-align: right;
+      right: 10px;
+    }
+    .home-button {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: inherit;
+      text-decoration: none;
+      z-index: 100;
+    }
+    .menu {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+    .menu button {
+      appearance: none;
+      width: 120px;
+      height: 40px;
+      border: 0;
+      border-radius: 5px;
+      background-color: #e64980;
+      color: inherit;
+      font-size: 1rem;
+      text-transform: inherit;
+      cursor: pointer;
+      user-select: none;
+      outline: none;
+    }
+    .trigger {
+      appearance: none;
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      bottom: 10px;
+      border: 0;
+      border-radius: 50%;
+      color: inherit;
+      background-color: #e64980;
+      text-align: center;
+      line-height: 80px;
+      font-size: 1.25rem;
+      text-transform: inherit;
+      cursor: pointer;
+      user-select: none;
+      outline: none;
+      z-index: 10;
+    }
+    .left-trigger {
+      left: 10px;
+    }
+    .right-trigger {
+      right: 60px;
+    }
+    canvas {
+      overflow: hidden;
+      border-radius: 5px;
+      box-shadow: 0 5px 25px rgba(0, 0, 0, 0.75);
+    }
+    .game-over {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-transform: none;
+      z-index: 20;
+    }
+    .game-over-content {
+      text-align: center;
+    }
+    .highscore-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-transform: none;
+      z-index: 100;
+    }
+    .highscore-modal-content {
+      text-align: center;
+    }
+    #leaderboard {
+      margin-top: 1rem;
+    }
+    #leaderboard-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .hidden {
+      display: none;
+    }
+    @media (min-height: 0px) {
+      .container { transform: scale(0.25); }
+    }
+    @media (min-height: 400px) {
+      .container { transform: scale(0.5); }
+    }
+    @media (min-height: 600px) {
+      .container { transform: scale(0.75); }
+    }
+    @media (min-height: 800px) {
+      .container { transform: scale(1); }
+    }
+  </style>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/matter-attractors@0.1.6/build/matter-attractors.min.js"></script>
 </head>
 <body>
   <a class="home-button" href="https://singaseongj.github.io/">Home</a>
@@ -38,6 +193,463 @@
       <button id="close-highscore">Close</button>
     </div>
   </div>
-  <script src="pinball.js"></script>
+  
+  <script>
+(() => {
+  // constants
+  const PATHS = {
+    DOME: '0 0 0 250 19 250 20 231.9 25.7 196.1 36.9 161.7 53.3 129.5 74.6 100.2 100.2 74.6 129.5 53.3 161.7 36.9 196.1 25.7 231.9 20 268.1 20 303.9 25.7 338.3 36.9 370.5 53.3 399.8 74.6 425.4 100.2 446.7 129.5 463.1 161.7 474.3 196.1 480 231.9 480 250 500 250 500 0 0 0',
+    DROP_LEFT: '0 0 20 0 70 100 20 150 0 150 0 0',
+    DROP_RIGHT: '50 0 68 0 68 150 50 150 0 100 50 0',
+    APRON_LEFT: '0 0 180 120 0 120 0 0',
+    APRON_RIGHT: '180 0 180 120 0 120 180 0'
+  };
+  const COLOR = {
+    BACKGROUND: '#212529',
+    OUTER: '#495057',
+    INNER: '#15aabf',
+    BUMPER: '#fab005',
+    BUMPER_LIT: '#fff3bf',
+    PADDLE: '#e64980',
+    PINBALL: '#dee2e6'
+  };
+  const GRAVITY = 0.75;
+  const WIREFRAMES = false;
+  const BUMPER_BOUNCE = 1.5;
+  const MAX_VELOCITY = 50;
+  const LEADERBOARD_URL = 'https://script.google.com/macros/s/AKfycbz5pBJY9qeYThLk1GGDAXAibEey9_hazpRi3PbaY3MuU0h2_1tr8OfSrzTa5IUJMj0/exec';
+
+  // score elements
+  let $currentScore = $('.current-score span');
+  let $highScore = $('.high-score span');
+
+  // shared variables
+  let currentScore, highScore;
+  let engine, world, render, pinball, stopperGroup;
+  let leftPaddle, leftUpStopper, leftDownStopper, isLeftPaddleUp;
+  let rightPaddle, rightUpStopper, rightDownStopper, isRightPaddleUp;
+  let bottomReset, shooterLane;
+
+  function load() {
+    init();
+    createStaticBodies();
+    createPaddles();
+    createPinball();
+    createEvents();
+  }
+
+  function init() {
+    engine = Matter.Engine.create();
+    world = engine.world;
+    world.bounds = {
+      min: { x: 0, y: 0 },
+      max: { x: 500, y: 800 }
+    };
+    world.gravity.y = GRAVITY;
+
+    render = Matter.Render.create({
+      element: $('.container')[0],
+      engine: engine,
+      options: {
+        width: world.bounds.max.x,
+        height: world.bounds.max.y,
+        wireframes: WIREFRAMES,
+        background: COLOR.BACKGROUND
+      }
+    });
+    Matter.Render.run(render);
+
+    let runner = Matter.Runner.create();
+    Matter.Runner.run(runner, engine);
+
+    stopperGroup = Matter.Body.nextGroup(true);
+
+    currentScore = 0;
+    highScore = 0;
+    $highScore.text(highScore);
+    showLeaderboard();
+    isLeftPaddleUp = false;
+    isRightPaddleUp = false;
+  }
+
+  function createStaticBodies() {
+    bottomReset = reset(225, 50);
+    Matter.World.add(world, [
+      // boundaries
+      boundary(250, -30, 500, 100),
+      boundary(250, 830, 500, 100),
+      boundary(-30, 400, 100, 800),
+      boundary(530, 400, 100, 800),
+      
+      // main dome shape at the top
+      wall(100, 100, 200, 20, COLOR.OUTER, -0.96),
+      wall(400, 100, 200, 20, COLOR.OUTER, 0.96),
+      
+      // upper walls
+      wall(140, 140, 20, 40, COLOR.INNER),
+      wall(225, 140, 20, 40, COLOR.INNER),
+      wall(310, 140, 20, 40, COLOR.INNER),
+      
+      // bumpers
+      bumper(105, 250),
+      bumper(225, 250),
+      bumper(345, 250),
+      bumper(165, 340),
+      bumper(285, 340),
+      
+      // shooter lane wall
+      wall(440, 520, 20, 560, COLOR.OUTER),
+      
+      // side drops
+      path(25, 360, PATHS.DROP_LEFT),
+      path(425, 360, PATHS.DROP_RIGHT),
+      
+      // lower walls that guide to flippers
+      wall(120, 600, 20, 120, COLOR.INNER, 0.96),
+      wall(380, 600, 20, 120, COLOR.INNER, -0.96),
+      
+      // aprons
+      path(79, 740, PATHS.APRON_LEFT),
+      path(371, 740, PATHS.APRON_RIGHT),
+      
+      // bottom reset
+      bottomReset,
+      
+      // shooter lane guide
+      wall(465, 700, 20, 100, COLOR.OUTER),
+      wall(450, 400, 50, 20, COLOR.OUTER)
+    ]);
+  }
+
+  function createPaddles() {
+    // Left paddle
+    leftPaddle = {};
+    leftPaddle.paddle = Matter.Bodies.trapezoid(170, 660, 20, 80, 0.33, {
+      label: 'paddleLeft',
+      angle: 1.57,
+      chamfer: {},
+      render: { fillStyle: COLOR.PADDLE },
+      isStatic: false
+    });
+    leftPaddle.hinge = Matter.Bodies.circle(142, 660, 5, {
+      isStatic: true,
+      render: { visible: false }
+    });
+    leftPaddle.con = Matter.Constraint.create({
+      bodyA: leftPaddle.paddle,
+      pointA: { x: -29.5, y: -8.5 },
+      bodyB: leftPaddle.hinge,
+      length: 0,
+      stiffness: 0.9
+    });
+    Matter.World.add(world, [leftPaddle.paddle, leftPaddle.hinge, leftPaddle.con]);
+    Matter.Body.rotate(leftPaddle.paddle, 0.57, { x: 142, y: 660 });
+
+    // Right paddle
+    rightPaddle = {};
+    rightPaddle.paddle = Matter.Bodies.trapezoid(280, 660, 20, 80, 0.33, {
+      label: 'paddleRight',
+      angle: -1.57,
+      chamfer: {},
+      render: { fillStyle: COLOR.PADDLE },
+      isStatic: false
+    });
+    rightPaddle.hinge = Matter.Bodies.circle(308, 660, 5, {
+      isStatic: true,
+      render: { visible: false }
+    });
+    rightPaddle.con = Matter.Constraint.create({
+      bodyA: rightPaddle.paddle,
+      pointA: { x: 29.5, y: -8.5 },
+      bodyB: rightPaddle.hinge,
+      length: 0,
+      stiffness: 0.9
+    });
+    Matter.World.add(world, [rightPaddle.paddle, rightPaddle.hinge, rightPaddle.con]);
+    Matter.Body.rotate(rightPaddle.paddle, -0.57, { x: 308, y: 660 });
+  }
+
+  function createPinball() {
+    pinball = Matter.Bodies.circle(0, 0, 14, {
+      label: 'pinball',
+      render: { fillStyle: COLOR.PINBALL },
+      restitution: 0.2,
+      friction: 0.1,
+      density: 0.01
+    });
+    Matter.World.add(world, pinball);
+    launchPinball();
+  }
+
+  function createEvents() {
+    // Collision events
+    Matter.Events.on(engine, 'collisionStart', function(event) {
+      let pairs = event.pairs;
+      pairs.forEach(function(pair) {
+        if (pair.bodyB.label === 'pinball') {
+          switch (pair.bodyA.label) {
+            case 'reset':
+              gameOver();
+              break;
+            case 'bumper':
+              pingBumper(pair.bodyA);
+              break;
+            case 'paddleLeft':
+            case 'paddleRight':
+              updateScore(currentScore + 5);
+              break;
+          }
+        }
+      });
+    });
+
+    // Before update events - control paddles
+    Matter.Events.on(engine, 'beforeUpdate', function() {
+      // Control left paddle
+      if (isLeftPaddleUp) {
+        Matter.Body.setAngularVelocity(leftPaddle.paddle, -0.25);
+      } else {
+        Matter.Body.setAngularVelocity(leftPaddle.paddle, 0.25);
+      }
+      
+      // Control right paddle
+      if (isRightPaddleUp) {
+        Matter.Body.setAngularVelocity(rightPaddle.paddle, 0.25);
+      } else {
+        Matter.Body.setAngularVelocity(rightPaddle.paddle, -0.25);
+      }
+      
+      // Limit paddle rotation
+      if (leftPaddle.paddle.angle < 0.5) {
+        Matter.Body.setAngle(leftPaddle.paddle, 0.5);
+        Matter.Body.setAngularVelocity(leftPaddle.paddle, 0);
+      }
+      if (leftPaddle.paddle.angle > 2.2) {
+        Matter.Body.setAngle(leftPaddle.paddle, 2.2);
+        Matter.Body.setAngularVelocity(leftPaddle.paddle, 0);
+      }
+      
+      if (rightPaddle.paddle.angle > -0.5) {
+        Matter.Body.setAngle(rightPaddle.paddle, -0.5);
+        Matter.Body.setAngularVelocity(rightPaddle.paddle, 0);
+      }
+      if (rightPaddle.paddle.angle < -2.2) {
+        Matter.Body.setAngle(rightPaddle.paddle, -2.2);
+        Matter.Body.setAngularVelocity(rightPaddle.paddle, 0);
+      }
+      
+      // Limit ball velocity
+      if (pinball) {
+        Matter.Body.setVelocity(pinball, {
+          x: Math.max(Math.min(pinball.velocity.x, MAX_VELOCITY), -MAX_VELOCITY),
+          y: Math.max(Math.min(pinball.velocity.y, MAX_VELOCITY), -MAX_VELOCITY)
+        });
+        
+        // Auto-launch from shooter lane
+        if (pinball.position.x > 450 && pinball.position.y < 400 && pinball.velocity.y < 2) {
+          Matter.Body.setVelocity(pinball, { x: -2, y: -15 });
+        }
+      }
+    });
+
+    // Keyboard controls
+    $('body').on('keydown', function(e) {
+      if (e.which === 90) { // Z key
+        isLeftPaddleUp = true;
+      } else if (e.which === 191) { // / key
+        isRightPaddleUp = true;
+      }
+    });
+    
+    $('body').on('keyup', function(e) {
+      if (e.which === 90) {
+        isLeftPaddleUp = false;
+      } else if (e.which === 191) {
+        isRightPaddleUp = false;
+      }
+    });
+
+    // Touch/click controls
+    $('.left-trigger')
+      .on('mousedown touchstart', function(e) { 
+        e.preventDefault();
+        isLeftPaddleUp = true; 
+      })
+      .on('mouseup touchend', function(e) { 
+        e.preventDefault();
+        isLeftPaddleUp = false; 
+      });
+      
+    $('.right-trigger')
+      .on('mousedown touchstart', function(e) { 
+        e.preventDefault();
+        isRightPaddleUp = true; 
+      })
+      .on('mouseup touchend', function(e) { 
+        e.preventDefault();
+        isRightPaddleUp = false; 
+      });
+  }
+
+  function launchPinball() {
+    updateScore(0);
+    Matter.Body.setPosition(pinball, { x: 465, y: 500 });
+    Matter.Body.setVelocity(pinball, { x: 0, y: -25 });
+    Matter.Body.setAngularVelocity(pinball, 0);
+  }
+
+  function pingBumper(bumper) {
+    updateScore(currentScore + 10);
+    
+    // Light up bumper
+    bumper.render.fillStyle = COLOR.BUMPER_LIT;
+    setTimeout(function() {
+      bumper.render.fillStyle = COLOR.BUMPER;
+    }, 100);
+    
+    // Apply force to ball
+    let angle = Matter.Vector.angle(bumper.position, pinball.position);
+    let force = Matter.Vector.create(
+      Math.cos(angle) * 0.02,
+      Math.sin(angle) * 0.02
+    );
+    Matter.Body.applyForce(pinball, pinball.position, force);
+  }
+
+  function updateScore(newCurrentScore) {
+    currentScore = newCurrentScore;
+    $currentScore.text(currentScore);
+    highScore = Math.max(currentScore, highScore);
+    $highScore.text(highScore);
+  }
+
+  function gameOver() {
+    $('#game-over').removeClass('hidden');
+    showLeaderboard();
+    Matter.World.remove(world, pinball);
+    pinball = null;
+    
+    // Restart after submission
+    setTimeout(() => {
+      if (!pinball) {
+        createPinball();
+      }
+    }, 5000);
+  }
+
+  function wall(x, y, width, height, color, angle = 0) {
+    return Matter.Bodies.rectangle(x, y, width, height, {
+      angle: angle,
+      isStatic: true,
+      chamfer: { radius: 10 },
+      render: { fillStyle: color }
+    });
+  }
+
+  function boundary(x, y, width, height) {
+    return Matter.Bodies.rectangle(x, y, width, height, {
+      isStatic: true,
+      render: { fillStyle: COLOR.BACKGROUND }
+    });
+  }
+
+  function path(x, y, pathStr) {
+    let vertices = Matter.Vertices.fromPath(pathStr);
+    return Matter.Bodies.fromVertices(x, y, vertices, {
+      isStatic: true,
+      render: {
+        fillStyle: COLOR.OUTER,
+        strokeStyle: COLOR.OUTER,
+        lineWidth: 1
+      }
+    }, true);
+  }
+
+  function bumper(x, y) {
+    let bumper = Matter.Bodies.circle(x, y, 25, {
+      label: 'bumper',
+      isStatic: true,
+      render: { fillStyle: COLOR.BUMPER }
+    });
+    bumper.restitution = BUMPER_BOUNCE;
+    return bumper;
+  }
+
+  function reset(x, width) {
+    return Matter.Bodies.rectangle(x, 781, width, 2, {
+      label: 'reset',
+      isStatic: true,
+      render: { fillStyle: '#fff' }
+    });
+  }
+
+  $('#submit-score').on('click', function() {
+    let name = $('#player-name').val().trim();
+    if (name) {
+      fetch(LEADERBOARD_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, score: currentScore })
+      })
+        .then(() => {
+          $('#player-name').val('');
+          $('#game-over').addClass('hidden');
+          showLeaderboard();
+          if (!pinball) {
+            createPinball();
+          }
+        })
+        .catch(err => console.error('Error submitting score:', err));
+    }
+  });
+
+  function showLeaderboard() {
+    fetch(LEADERBOARD_URL)
+      .then(res => res.json())
+      .then(data => {
+        let list = $('#leaderboard-list');
+        list.empty();
+        if (data.scores && data.scores.length > 0) {
+          data.scores.forEach(s => {
+            list.append(`<li>${s.name}: ${s.score}</li>`);
+          });
+          highScore = data.scores[0]?.score || 0;
+          $highScore.text(highScore);
+        }
+      })
+      .catch(err => console.error('Error fetching leaderboard:', err));
+  }
+
+  function showHighScores() {
+    fetch(LEADERBOARD_URL)
+      .then(res => res.json())
+      .then(data => {
+        let list = $('#highscore-list');
+        list.empty();
+        if (data.scores && data.scores.length > 0) {
+          data.scores.forEach(s => {
+            list.append(`<li>${s.name}: ${s.score}</li>`);
+          });
+        }
+        $('#highscore-modal').removeClass('hidden');
+      })
+      .catch(err => console.error('Error fetching leaderboard:', err));
+  }
+
+  $('#start-game').on('click', () => {
+    $('.menu').addClass('hidden');
+    $('.container').removeClass('hidden');
+    load();
+  });
+
+  $('#show-highscores').on('click', () => {
+    showHighScores();
+  });
+
+  $('#close-highscore').on('click', () => {
+    $('#highscore-modal').addClass('hidden');
+  });
+})();
+  </script>
 </body>
 </html>
