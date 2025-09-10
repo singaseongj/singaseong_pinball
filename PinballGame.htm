@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<meta charset="UTF-8">
-		<title>Pinball</title>
-		<style>
+                <meta charset="UTF-8">
+                <title>Pinball</title>
+                <link rel="stylesheet" href="style.css">
+                <style>
 			html,body{height:100%;padding:0;margin:0;overflow:hidden;touch-action:none;-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 			#content{position:fixed;height:100%;width:100%;margin:0;padding:0;z-index:99}
 
@@ -28,9 +29,27 @@
 		</style>
 	</head>
 	<body>
-		<div class="background"></div>
-		<div class="pleasewait" id="loading"><div class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div>
-		<div id="content" oncontextmenu="return false;"></div>
-		<script src="PinballGame.js"></script>
+                <div class="background"></div>
+                <div class="pleasewait" id="loading"><div class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div>
+                <div id="content" oncontextmenu="return false;"></div>
+                <div class="game-over hidden" id="game-over">
+                  <div class="game-over-content">
+                    <p id="final-score-text">Game Over</p>
+                    <button id="play-again">Play Again</button>
+                    <button id="main-menu">Main Menu</button>
+                    <input id="player-name" placeholder="Your name" />
+                    <button id="submit-score">Submit Score</button>
+                  </div>
+                </div>
+                <div class="highscore-modal hidden" id="highscore-modal">
+                  <div class="highscore-modal-content">
+                    <h2>Leaderboard</h2>
+                    <ul id="leaderboard-list"></ul>
+                    <button id="close-leaderboard">Close</button>
+                  </div>
+                </div>
+                <button class="trigger left-trigger" id="left-trigger">◀</button>
+                <button class="trigger right-trigger" id="right-trigger">▶</button>
+                <script src="PinballGame.js"></script>
 	</body>
 </html>
