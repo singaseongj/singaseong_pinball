@@ -90,7 +90,8 @@
       boundary(250, 830, 500, 100),
       boundary(-30, 400, 100, 800),
       boundary(530, 400, 100, 800),
-      path(239, 86, PATHS.DOME),
+      // shrink + recenter dome slightly to reduce grey area at the top
+      path(250, 70, PATHS.DOME, 0.9),
       wall(140, 140, 20, 40, COLOR.INNER),
       wall(225, 140, 20, 40, COLOR.INNER),
       wall(310, 140, 20, 40, COLOR.INNER),
@@ -102,12 +103,9 @@
       wall(440, 520, 20, 560, COLOR.OUTER),
       path(25, 360, PATHS.DROP_LEFT),
       path(425, 360, PATHS.DROP_RIGHT),
-      wall(120, 510, 20, 120, COLOR.INNER),
-      wall(330, 510, 20, 120, COLOR.INNER),
-      wall(60, 529, 20, 160, COLOR.INNER),
-      wall(390, 529, 20, 160, COLOR.INNER),
-      wall(93, 624, 20, 98, COLOR.INNER, -0.96),
-      wall(357, 624, 20, 98, COLOR.INNER, 0.96),
+      // replace straight segments with smooth curved inlanes/outlanes
+      curvedWall(140, 660, 70, 92, 205, 330, COLOR.INNER), // left curve
+      curvedWall(360, 660, 70, 92, 210, 335, COLOR.INNER), // right curve
       path(79, 740, PATHS.APRON_LEFT),
       path(371, 740, PATHS.APRON_RIGHT),
       bottomReset,
@@ -223,6 +221,8 @@
     });
 
     Matter.Events.on(engine, 'beforeUpdate', function() {
+      // guard if ball was removed on game over
+      if (!pinball) return;
       Matter.Body.setVelocity(pinball, {
         x: Math.max(Math.min(pinball.velocity.x, MAX_VELOCITY), -MAX_VELOCITY),
         y: Math.max(Math.min(pinball.velocity.y, MAX_VELOCITY), -MAX_VELOCITY)
@@ -296,6 +296,8 @@
     $('#game-over').removeClass('hidden');
     showLeaderboard();
     Matter.World.remove(world, pinball);
+    // avoid touching a removed body in beforeUpdate
+    pinball = null;
   }
 
   $('#submit-score').on('click', function() {
@@ -352,7 +354,8 @@
   function boundary(x, y, width, height) {
     return Matter.Bodies.rectangle(x, y, width, height, {
       isStatic: true,
-      render: { fillStyle: COLOR.OUTER }
+      // draw outer boundaries in background color so unreachable "grey" isn't visible
+      render: { fillStyle: COLOR.BACKGROUND }
     });
   }
 
@@ -365,16 +368,41 @@
     });
   }
 
-  function path(x, y, path) {
-    let vertices = Matter.Vertices.fromPath(path);
-    return Matter.Bodies.fromVertices(x, y, vertices, {
+  // bodies created from SVG paths, with optional scaling and extra options
+  function path(x, y, pathStr, scale = 1, options = {}) {
+    let vertices = Matter.Vertices.fromPath(pathStr);
+    const body = Matter.Bodies.fromVertices(x, y, vertices, {
       isStatic: true,
       render: {
         fillStyle: COLOR.OUTER,
         strokeStyle: COLOR.OUTER,
         lineWidth: 1
-      }
-    });
+      },
+      ...options
+    }, true);
+    if (scale !== 1) {
+      Matter.Body.scale(body, scale, scale);
+    }
+    return body;
+  }
+
+  // smooth curved wall (annular sector) that gently guides balls toward the flippers
+  function curvedWall(cx, cy, rInner, rOuter, startDeg, endDeg, color = COLOR.OUTER) {
+    const steps = 24;
+    const toRad = d => d * Math.PI / 180;
+    const verts = [];
+    for (let i = 0; i <= steps; i++) {
+      const t = toRad(startDeg + (endDeg - startDeg) * (i / steps));
+      verts.push({ x: Math.cos(t) * rOuter, y: Math.sin(t) * rOuter });
+    }
+    for (let i = steps; i >= 0; i--) {
+      const t = toRad(startDeg + (endDeg - startDeg) * (i / steps));
+      verts.push({ x: Math.cos(t) * rInner, y: Math.sin(t) * rInner });
+    }
+    return Matter.Bodies.fromVertices(cx, cy, [verts], {
+      isStatic: true,
+      render: { fillStyle: color, strokeStyle: color, lineWidth: 1 }
+    }, true);
   }
 
   function bumper(x, y) {
