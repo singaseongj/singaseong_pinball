@@ -245,7 +245,7 @@ Pinball.Menu.prototype = {
 		this.menuMainAppTitleShadow.tint = 0x000000;
 
 		// ADDING THE APP TITLE
-		this.menuMainAppTitle = game.add.bitmapText(0, 205, "ArialBlackWhiteBig", "Pinball", 35);
+		this.menuMainAppTitle = game.add.bitmapText(0, 205, "ArialBlackWhiteBig", "Singaseong Pinball", 35);
 		this.menuMainAppTitle.height = 37;
 		this.menuMainAppTitle.position.x = game.width / 2 - this.menuMainAppTitle.width / 2;
 
