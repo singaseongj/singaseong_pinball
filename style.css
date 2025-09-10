@@ -1,9 +1,37 @@
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  touch-action: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   font-family: Arial, sans-serif;
   text-align: center;
   background: #f0f0f0;
+}
+
+#content {
+  position: fixed;
+  height: 100%;
+  width: 100%;
   margin: 0;
   padding: 0;
+  z-index: 99;
+}
+
+.background {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
 }
 
 #homeBtn {
