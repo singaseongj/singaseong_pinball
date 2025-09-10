@@ -10,22 +10,30 @@
   <link rel="manifest" href="src/site.webmanifest">
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <a id="homeBtn" href="https://singaseongj.github.io/">Home</a>
-  <h1>Singaseong Pinball</h1>
-  <div id="menu">
-    <button id="startBtn">Start Game</button>
-    <button id="highscoreBtn">High Scores</button>
-  </div>
-  <div id="scoreboard" class="hidden">
-    <h2>High Scores</h2>
-    <ol id="scores"></ol>
-    <button id="closeScore">Close</button>
-  </div>
-  <div id="gameArea" class="hidden">
-    <canvas id="game" width="400" height="600"></canvas>
-    <div id="scoreWrap">Score: <span id="score">0</span></div>
+<body oncontextmenu="return false;">
+  <div class="background"></div>
+  <div id="content">
+    <a id="homeBtn" href="https://singaseongj.github.io/">Home</a>
+    <h1>Singaseong Pinball</h1>
+    <div id="menu">
+      <button id="startBtn">Start Game</button>
+      <button id="highscoreBtn">High Scores</button>
+    </div>
+    <div id="scoreboard" class="hidden">
+      <h2>High Scores</h2>
+      <ol id="scores"></ol>
+      <button id="closeScore">Close</button>
+    </div>
+    <div id="gameArea" class="hidden">
+      <canvas id="game" width="400" height="600"></canvas>
+      <div id="scoreWrap">Score: <span id="score">0</span></div>
+    </div>
   </div>
   <script src="pinball.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('worker.js');
+    }
+  </script>
 </body>
 </html>
