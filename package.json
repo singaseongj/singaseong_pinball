@@ -1,0 +1,9 @@
+{
+  "name": "singaseong-pinball",
+  "version": "1.0.0",
+  "description": "Browser-based pinball game.",
+  "scripts": {
+    "test": "echo 'No tests defined' && exit 0"
+  },
+  "license": "MIT"
+}
