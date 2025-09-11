@@ -1249,6 +1249,14 @@ this.ballBody.setFixtureContactCallback(this.gutterFixture2, function(){
 		// ADDING THE HIGH SCORE LABEL
 		this.highScoreLabel = game.add.bitmapText(66, -523.25, "ArialBlackWhite", this.getHighscore(), 27);
 		this.highScoreLabel.height = 32;
+var self = this;
+fetchLeaderboard().then(function(scores) {
+    if (scores && scores.length > 0) {
+      var top = String(scores[0].score);
+      self.highScoreLabel.setText(top);
+      self.highScoreLabelShadow.setText(top);
+    }
+  });
 
 		// ADDING THE SOUND HANDLER ON BACKGROUND
 		this.soundHandlerOnBackground = game.add.graphics();
@@ -2133,8 +2141,12 @@ restartGame: function () {
 		},
 
 	getHighscore: function()
-		{
-		try
+  {
+  if (window.leaderboard && window.leaderboard.length > 0)
+    {
+    return String(window.leaderboard[0].score);
+    }
+  try
 			{
 			var name = "highscorepinball";
 			var nameEQ = name + "=";
