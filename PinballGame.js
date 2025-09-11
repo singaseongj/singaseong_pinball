@@ -1645,7 +1645,7 @@ hideMobileInput: function () {
   if (!this._domInput) return;
   this._domInput.style.display = 'none';
   this._domInput.blur();
-}
+},
 
 // Persist + update leaderboard (uses your existing API + localStorage)
 saveScore: function () {
