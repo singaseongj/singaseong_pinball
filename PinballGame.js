@@ -1870,7 +1870,7 @@ hideMobileInput: function () {
   }, 50);
 },
 
-// Persist + update leaderboard (uses your existing API + localStorage)
+// Persist + update leaderboard (uses your existing API)
 saveScore: function () {
   if (this._savingScore) return; // prevent double taps
   this._savingScore = true;
@@ -1898,20 +1898,6 @@ saveScore: function () {
     date: new Date().toISOString()
   };
 
-  // --- Local leaderboard (top 10) ---
-  try {
-    var list = JSON.parse(localStorage.getItem("pinballLeaderboard") || "[]");
-    list.push(payload);
-    // sort: higher score first; if tie, shorter time first
-    list.sort(function(a, b){
-      if (b.score !== a.score) return b.score - a.score;
-      return (a.time || 0) - (b.time || 0);
-    });
-    list = list.slice(0, 10);
-    localStorage.setItem("pinballLeaderboard", JSON.stringify(list));
-  } catch (e) {
-    console.warn("localStorage error:", e);
-  }
 
   // --- Remote save (best-effort) ---
   // --- Remote save (best-effort; avoids preflight) ---
@@ -2259,32 +2245,17 @@ restartGame: function () {
                 }
         };
 
-// Fetch leaderboard from API or localStorage
+// Fetch leaderboard from Google Sheets API
 function fetchLeaderboard() {
   return new Promise(function (resolve, reject) {
     var apiUrl = "https://script.google.com/macros/s/AKfycbz5pBJY9qeYThLk1GGDAXAibEey9_hazpRi3PbaY3MuU0h2_1tr8OfSrzTa5IUJMj0/exec";
-    var localScores = [];
-
-    try {
-      localScores = JSON.parse(localStorage.getItem("pinballLeaderboard") || "[]");
-    } catch (e) {
-    }
-
-    function finalizeScores(remoteScores) {
-      var allScores = remoteScores.concat(localScores);
-      allScores.sort(function (a, b) {
-        return (parseInt(b.score, 10) || 0) - (parseInt(a.score, 10) || 0);
-      });
-      window.leaderboard = allScores.slice(0, 10);
-      resolve(window.leaderboard);
-    }
 
     if (window.fetch) {
       fetch(apiUrl)
         .then(function (res) { return res.json(); })
         .then(function (data) {
           var remoteScores = Array.isArray(data.scores) ? data.scores : [];
-			remoteScores = remoteScores
+          remoteScores = remoteScores
             .map(function (row) {
               if (Array.isArray(row)) {
                 return { name: row[0], score: row[1], date: row[2] };
@@ -2294,21 +2265,17 @@ function fetchLeaderboard() {
             .filter(function (entry) {
               return entry && entry.name && entry.score !== undefined;
             });
-          finalizeScores(remoteScores);
+          remoteScores.sort(function (a, b) {
+            return (parseInt(b.score, 10) || 0) - (parseInt(a.score, 10) || 0);
+          });
+          window.leaderboard = remoteScores.slice(0, 10);
+          resolve(window.leaderboard);
         })
         .catch(function () {
-          if (localScores.length > 0) {
-            finalizeScores([]);
-          } else {
-            reject();
-          }
+          reject();
         });
     } else {
-      if (localScores.length > 0) {
-        finalizeScores([]);
-      } else {
-        reject();
-      }
+      reject();
     }
   });
 }
