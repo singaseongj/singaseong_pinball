@@ -1453,171 +1453,134 @@ Pinball.Game.prototype = {
 			});
 		},
 
-	createGameOverOverlay: function()
-		{
-		// CREATE OVERLAY GROUP
-		this.gameOverOverlay = game.add.group();
-		this.gameOverOverlay.fixedToCamera = true;
+	createGameOverOverlay: function() {
+  		this.gameOverOverlay = game.add.group();
+  		this.gameOverOverlay.fixedToCamera = true;
+  		this.gameOverOverlay.cameraOffset.setTo(0, 0);
 
-		// SEMI-TRANSPARENT BACKGROUND
-		this.gameOverBackground = game.add.graphics();
+ 		this.gameOverBackground = game.add.graphics(0, 0);
 		this.gameOverBackground.beginFill(0x000000, 0.8);
-		this.gameOverBackground.drawRect(0, 0, 320, 608);
-		this.gameOverBackground.fixedToCamera = true;
-		this.gameOverOverlay.add(this.gameOverBackground);
+ 		this.gameOverBackground.drawRect(0, 0, 320, 608);
+  		this.gameOverOverlay.add(this.gameOverBackground);
 
-		// GAME OVER TITLE
-		this.gameOverTitle = game.add.bitmapText(160, 150, "ArialBlackWhite", "GAME OVER", 32);
-		this.gameOverTitle.anchor.setTo(0.5, 0.5);
-		this.gameOverTitle.fixedToCamera = true;
-		this.gameOverTitle.tint = 0xFFFFFF;
-		this.gameOverOverlay.add(this.gameOverTitle);
+ 		this.gameOverTitle = game.add.bitmapText(160, 150, "ArialBlackWhite", "GAME OVER", 32);
+  		this.gameOverTitle.anchor.set(0.5);
+  		this.gameOverOverlay.add(this.gameOverTitle);
 
-		// FINAL SCORE
-		this.gameOverScore = game.add.bitmapText(160, 200, "ArialBlackWhite", "SCORE: 0", 24);
-		this.gameOverScore.anchor.setTo(0.5, 0.5);
-		this.gameOverScore.fixedToCamera = true;
-		this.gameOverScore.tint = 0xFFFFFF;
+  		this.gameOverScore = game.add.bitmapText(160, 200, "ArialBlackWhite", "SCORE: 0", 24);
+ 		this.gameOverScore.anchor.set(0.5);
 		this.gameOverOverlay.add(this.gameOverScore);
 
-		// PLAY AGAIN BUTTON
-		var playAgainBg = game.add.graphics();
-		playAgainBg.beginFill(0x022C5C, 1);
-		playAgainBg.lineStyle(2, 0x0046A9, 1);
-		playAgainBg.drawRoundedRect(60, 260, 200, 50, 10);
-		playAgainBg.fixedToCamera = true;
-		this.gameOverOverlay.add(playAgainBg);
+ 		// Buttons: add to group, don't set fixedToCamera on them
+ 		// Play Again
+ 		var playAgainBg = game.add.graphics(60, 260);
+ 		playAgainBg.beginFill(0x022C5C, 1);
+  		playAgainBg.lineStyle(2, 0x0046A9, 1);
+  		playAgainBg.drawRoundedRect(0, 0, 200, 50, 10);
+  		this.gameOverOverlay.add(playAgainBg);
 
-		this.playAgainButton = game.add.bitmapText(160, 285, "ArialBlackWhite", "PLAY AGAIN", 20);
-		this.playAgainButton.anchor.setTo(0.5, 0.5);
-		this.playAgainButton.fixedToCamera = true;
-		this.playAgainButton.inputEnabled = true;
-		this.playAgainButton.input.useHandCursor = true;
-		this.playAgainButton.events.onInputUp.add(this.restartGame, this);
-		this.gameOverOverlay.add(this.playAgainButton);
+  		this.playAgainButton = game.add.bitmapText(160, 285, "ArialBlackWhite", "PLAY AGAIN", 20);
+  		this.playAgainButton.anchor.set(0.5);
+  		this.playAgainButton.inputEnabled = true;
+  		this.playAgainButton.input.useHandCursor = true;
+  		this.playAgainButton.events.onInputUp.add(this.restartGame, this);
+  		this.gameOverOverlay.add(this.playAgainButton);
 
-		// MAIN MENU BUTTON
-		var mainMenuBg = game.add.graphics();
-		mainMenuBg.beginFill(0x383838, 1);
-		mainMenuBg.lineStyle(2, 0x707070, 1);
-		mainMenuBg.drawRoundedRect(60, 330, 200, 50, 10);
-		mainMenuBg.fixedToCamera = true;
-		this.gameOverOverlay.add(mainMenuBg);
+  		// Main Menu
+  		var mainMenuBg = game.add.graphics(60, 330);
+  		mainMenuBg.beginFill(0x383838, 1);
+  		mainMenuBg.lineStyle(2, 0x707070, 1);
+  		mainMenuBg.drawRoundedRect(0, 0, 200, 50, 10);
+  		this.gameOverOverlay.add(mainMenuBg);
 
-		this.mainMenuButton = game.add.bitmapText(160, 355, "ArialBlackWhite", "MAIN MENU", 20);
-		this.mainMenuButton.anchor.setTo(0.5, 0.5);
-		this.mainMenuButton.fixedToCamera = true;
-		this.mainMenuButton.inputEnabled = true;
-		this.mainMenuButton.input.useHandCursor = true;
-		this.mainMenuButton.events.onInputUp.add(this.goToMainMenu, this);
-		this.gameOverOverlay.add(this.mainMenuButton);
+  		this.mainMenuButton = game.add.bitmapText(160, 355, "ArialBlackWhite", "MAIN MENU", 20);
+  		this.mainMenuButton.anchor.set(0.5);
+  		this.mainMenuButton.inputEnabled = true;
+  		this.mainMenuButton.input.useHandCursor = true;
+  		this.mainMenuButton.events.onInputUp.add(this.goToMainMenu, this);
+  		this.gameOverOverlay.add(this.mainMenuButton);
 
-		// ENTER NAME BUTTON
-		var enterNameBg = game.add.graphics();
-		enterNameBg.beginFill(0x5C0222, 1);
-		enterNameBg.lineStyle(2, 0xA90046, 1);
-		enterNameBg.drawRoundedRect(60, 400, 200, 50, 10);
-		enterNameBg.fixedToCamera = true;
-		this.gameOverOverlay.add(enterNameBg);
+  		// Save Score
+  		var enterNameBg = game.add.graphics(60, 400);
+  		enterNameBg.beginFill(0x5C0222, 1);
+  		enterNameBg.lineStyle(2, 0xA90046, 1);
+  		enterNameBg.drawRoundedRect(0, 0, 200, 50, 10);
+  		this.gameOverOverlay.add(enterNameBg);
 
-		this.enterNameButton = game.add.bitmapText(160, 425, "ArialBlackWhite", "SAVE SCORE", 20);
-		this.enterNameButton.anchor.setTo(0.5, 0.5);
-		this.enterNameButton.fixedToCamera = true;
-		this.enterNameButton.inputEnabled = true;
-		this.enterNameButton.input.useHandCursor = true;
-		this.enterNameButton.events.onInputUp.add(this.showNameInput, this);
-		this.gameOverOverlay.add(this.enterNameButton);
+  		this.enterNameButton = game.add.bitmapText(160, 425, "ArialBlackWhite", "SAVE SCORE", 20);
+  		this.enterNameButton.anchor.set(0.5);
+  		this.enterNameButton.inputEnabled = true;
+  		this.enterNameButton.input.useHandCursor = true;
+  		this.enterNameButton.events.onInputUp.add(this.showNameInput, this);
+  		this.gameOverOverlay.add(this.enterNameButton);
 
-		// HIDE INITIALLY
-		this.gameOverOverlay.visible = false;
-		},
+  		this.gameOverOverlay.visible = false;
+	},
 
-	createNameInputOverlay: function()
-		{
-		// CREATE OVERLAY GROUP
-		this.nameInputOverlay = game.add.group();
-		this.nameInputOverlay.fixedToCamera = true;
+	createNameInputOverlay: function() {
+  this.nameInputOverlay = game.add.group();
+  this.nameInputOverlay.fixedToCamera = true;
+  this.nameInputOverlay.cameraOffset.setTo(0, 0);
 
-		// SEMI-TRANSPARENT BACKGROUND
-		this.nameInputBackground = game.add.graphics();
-		this.nameInputBackground.beginFill(0x000000, 0.9);
-		this.nameInputBackground.drawRect(0, 0, 320, 608);
-		this.nameInputBackground.fixedToCamera = true;
-		this.nameInputOverlay.add(this.nameInputBackground);
+  var bg = game.add.graphics(0, 0);
+  bg.beginFill(0x000000, 0.9);
+  bg.drawRect(0, 0, 320, 608);
+  this.nameInputOverlay.add(bg);
 
-		// TITLE
-		this.nameInputTitle = game.add.bitmapText(160, 200, "ArialBlackWhite", "ENTER YOUR NAME", 24);
-		this.nameInputTitle.anchor.setTo(0.5, 0.5);
-		this.nameInputTitle.fixedToCamera = true;
-		this.nameInputTitle.tint = 0xFFFFFF;
-		this.nameInputOverlay.add(this.nameInputTitle);
+  this.nameInputTitle = game.add.bitmapText(160, 200, "ArialBlackWhite", "ENTER YOUR NAME", 24);
+  this.nameInputTitle.anchor.set(0.5);
+  this.nameInputOverlay.add(this.nameInputTitle);
 
-		 		// INPUT FIELD BACKGROUND
-                var inputBg = game.add.graphics();
-                inputBg.beginFill(0xFFFFFF, 1);
-                inputBg.lineStyle(2, 0x343434, 1);
-                inputBg.drawRoundedRect(-100, -20, 200, 40, 5);
-                inputBg.fixedToCamera = true;
-                inputBg.cameraOffset.setTo(160, 260);
-                this.nameInputOverlay.add(inputBg);
+  var inputBg = game.add.graphics(60, 240);
+  inputBg.beginFill(0xFFFFFF, 1);
+  inputBg.lineStyle(2, 0x343434, 1);
+  inputBg.drawRoundedRect(0, 0, 200, 40, 5);
+  this.nameInputOverlay.add(inputBg);
 
-                // NAME DISPLAY
-                this.nameInputField = game.add.bitmapText(160, 260, "ArialBlackWhite", "", 20);
-                this.nameInputField.anchor.setTo(0.5, 0.5);
-                this.nameInputField.fixedToCamera = true;
-                this.nameInputField.tint = 0x000000;
-                this.nameInputOverlay.add(this.nameInputField);
+  this.nameInputField = game.add.bitmapText(160, 260, "ArialBlackWhite", "", 20);
+  this.nameInputField.anchor.set(0.5);
+  this.nameInputField.tint = 0x000000;
+  this.nameInputOverlay.add(this.nameInputField);
 
-                // SUBMIT BUTTON
-                var submitBg = game.add.graphics();
-                submitBg.beginFill(0x022C5C, 1);
-                submitBg.lineStyle(2, 0x0046A9, 1);
-                submitBg.drawRoundedRect(-100, -20, 200, 40, 10);
-                submitBg.fixedToCamera = true;
-                submitBg.cameraOffset.setTo(160, 320);
-                this.nameInputOverlay.add(submitBg);
+  var submitBg = game.add.graphics(60, 300);
+  submitBg.beginFill(0x022C5C, 1);
+  submitBg.lineStyle(2, 0x0046A9, 1);
+  submitBg.drawRoundedRect(0, 0, 200, 40, 10);
+  this.nameInputOverlay.add(submitBg);
 
-                this.nameInputSubmit = game.add.bitmapText(160, 320, "ArialBlackWhite", "SUBMIT", 16);
-                this.nameInputSubmit.anchor.setTo(0.5, 0.5);
-                this.nameInputSubmit.fixedToCamera = true;
-                this.nameInputSubmit.inputEnabled = true;
-                this.nameInputSubmit.input.useHandCursor = true;
-                this.nameInputSubmit.events.onInputUp.add(this.saveScore, this);
-                this.nameInputOverlay.add(this.nameInputSubmit);
+  this.nameInputSubmit = game.add.bitmapText(160, 320, "ArialBlackWhite", "SUBMIT", 16);
+  this.nameInputSubmit.anchor.set(0.5);
+  this.nameInputSubmit.inputEnabled = true;
+  this.nameInputSubmit.input.useHandCursor = true;
+  this.nameInputSubmit.events.onInputUp.add(this.saveScore, this);
+  this.nameInputOverlay.add(this.nameInputSubmit);
 
-                // BACK TO MENU BUTTON
-                var cancelBg = game.add.graphics();
-                cancelBg.beginFill(0x383838, 1);
-                cancelBg.lineStyle(2, 0x707070, 1);
-                cancelBg.drawRoundedRect(-100, -20, 200, 40, 10);
-                cancelBg.fixedToCamera = true;
-                cancelBg.cameraOffset.setTo(160, 380);
-                this.nameInputOverlay.add(cancelBg);
+  var cancelBg = game.add.graphics(60, 360);
+  cancelBg.beginFill(0x383838, 1);
+  cancelBg.lineStyle(2, 0x707070, 1);
+  cancelBg.drawRoundedRect(0, 0, 200, 40, 10);
+  this.nameInputOverlay.add(cancelBg);
 
-                this.nameInputCancel = game.add.bitmapText(160, 380, "ArialBlackWhite", "BACK TO MENU", 16);
-                this.nameInputCancel.anchor.setTo(0.5, 0.5);
-                this.nameInputCancel.fixedToCamera = true;
-                this.nameInputCancel.inputEnabled = true;
-                this.nameInputCancel.input.useHandCursor = true;
-                this.nameInputCancel.events.onInputUp.add(this.cancelNameInput, this);
-                this.nameInputOverlay.add(this.nameInputCancel);
+  this.nameInputCancel = game.add.bitmapText(160, 380, "ArialBlackWhite", "BACK TO MENU", 16);
+  this.nameInputCancel.anchor.set(0.5);
+  this.nameInputCancel.inputEnabled = true;
+  this.nameInputCancel.input.useHandCursor = true;
+  this.nameInputCancel.events.onInputUp.add(this.cancelNameInput, this);
+  this.nameInputOverlay.add(this.nameInputCancel);
 
-		// HIDE INITIALLY
-		this.nameInputOverlay.visible = false;
-		},
+  this.nameInputOverlay.visible = false;
+},
 
-	showGameOverOverlay: function()
-                {
-                this.gameOverActive = true;
-                this.gameOverScore.setText("SCORE: " + this.scoreValue);
-                this.gameOverOverlay.visible = true;
+	showGameOverOverlay: function() {
+  		this.gameOverActive = true;
+  		this.gameOverScore.setText("SCORE: " + this.scoreValue);
+  		this.gameOverOverlay.visible = true;
+  		game.physics.box2d.pause();
+  		game.world.bringToTop(this.gameOverOverlay);
 
-                // PAUSE PHYSICS
-                game.physics.box2d.pause();
-
-                // SHOW NAME INPUT OVERLAY AUTOMATICALLY
-                this.showNameInput();
-                },
+ 		// after a short pause, open name input
+  		game.time.events.add(800, this.showNameInput, this);
+	},
 
 	hideGameOverOverlay: function()
 		{
@@ -1625,17 +1588,17 @@ Pinball.Game.prototype = {
 		this.gameOverOverlay.visible = false;
 		},
 
-	showNameInput: function()
-		{
-		this.nameInputActive = true;
-		this.playerName = "";
-		this.nameInputField.setText("");
-		this.nameInputOverlay.visible = true;
-		this.hideGameOverOverlay();
+	showNameInput: function() {
+ 		this.nameInputActive = true;
+  		this.playerName = "";
+  		this.nameInputField.setText("");
+  		this.nameInputOverlay.visible = true;
+  		game.world.bringToTop(this.nameInputOverlay);
 
-		// ENABLE KEYBOARD INPUT
-		game.input.keyboard.addCallbacks(this, this.onKeyDown, null, null);
-		},
+  		// IMPORTANT: do NOT hide GAME OVER here if you want it in the background
+  		// this.hideGameOverOverlay();  // <-- remove this line
+  		game.input.keyboard.addCallbacks(this, this.onKeyDown, null, null);
+	},
 
 	hideNameInput: function()
                 {
