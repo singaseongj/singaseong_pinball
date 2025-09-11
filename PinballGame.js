@@ -1720,8 +1720,6 @@ backBg.drawRect(0, 0, 200, 40);
 this.gameOverOverlay.add(backBg);          // add first
 backBg.inputEnabled = true;                // then enable input
 if (backBg.input) backBg.input.useHandCursor = true;
-backBg.events.onInputUp.add(this.hardResetToMenu, this);
-backTxt.events.onInputUp.add(this.hardResetToMenu, this);
 
 // Optional: clickable label too
 var backTxt = game.add.bitmapText(160, 385, "ArialBlackWhite", "BACK TO MENU", 18);
@@ -1729,7 +1727,12 @@ backTxt.anchor.set(0.5);
 this.gameOverOverlay.add(backTxt);         // add first
 backTxt.inputEnabled = true;
 if (backTxt.input) backTxt.input.useHandCursor = true;
+
+// Route both the graphic and label back to the main menu
+backBg.events.onInputUp.add(this.goToMainMenu, this);
 backTxt.events.onInputUp.add(this.goToMainMenu, this);
+backTxt.events.onInputUp.add(this.goToMainMenu, this);
+		
 
 // --- Play Again (bigger hit target + label) ---
 var playBg = game.add.graphics(60, 315);
