@@ -2346,40 +2346,46 @@ Pinball.Leaderboard.prototype = {
     this.loadingText.visible = false;
 
     var topScores = (scores || []).slice(0, 10);
-    if (topScores.length === 0)
-    {
+    if (topScores.length === 0) {
       var noData = game.add.bitmapText(160, 200, "ArialBlackWhite", "NO SCORES YET", 20);
       noData.anchor.setTo(0.5, 0.5);
       noData.tint = 0xFFFFFF;
       return;
     }
 
+    if (!this.scoreGroup) {
+      this.scoreGroup = game.add.group();
+    } else {
+      this.scoreGroup.removeAll(true);
+    }
+
     // DISPLAY UP TO 10 SCORES
-    for (var i = 0; i < topScores.length; i++)
-    {
+    for (var i = 0; i < topScores.length; i++) {
       var rank = (i + 1).toString();
-	  var entry = topScores[i] || {};
+      var entry = topScores[i] || {};
       var name = (entry.name || "").toString().substring(0, 12);
       var score = (entry.score !== undefined ? entry.score : "").toString();
-
-      var name = topScores[i].name.substring(0, 12); // LIMIT NAME LENGTH
-      var score = topScores[i].score.toString();
 
       var yPos = 120 + (i * 35);
 
       // RANK
       var rankText = game.add.bitmapText(30, yPos, "ArialBlackWhite", rank + ".", 18);
       rankText.tint = 0xFFD700; // GOLD COLOR
+      this.scoreGroup.add(rankText);
 
       // NAME
       var nameText = game.add.bitmapText(60, yPos, "ArialBlackWhite", name, 18);
       nameText.tint = 0xFFFFFF;
+      this.scoreGroup.add(nameText);
 
       // SCORE
       var scoreText = game.add.bitmapText(260, yPos, "ArialBlackWhite", score, 18);
       scoreText.anchor.setTo(1, 0);
       scoreText.tint = 0x00FF00; // GREEN COLOR
+      this.scoreGroup.add(scoreText);
     }
+
+    game.world.bringToTop(this.scoreGroup);
   },
 
 	showError: function(message)
