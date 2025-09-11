@@ -251,7 +251,7 @@ Pinball.Menu.prototype = {
 		// ADDING THE APP TITLE
 		this.menuMainAppTitle = game.add.bitmapText(0, 205, "ArialBlackWhiteBig", "Singaseong\nPinball", 35);
 		// Adjust size and centering
-		this.menuMainAppTitle.height = 37;
+		this.menuMainAppTitle.height = 50;
 		this.menuMainAppTitle.position.x = game.width / 2 - this.menuMainAppTitle.width / 2;
 
 		// ADDING THE APP VERSION SHADOW
@@ -1547,18 +1547,7 @@ this.gameOverOverlay.add(backTxt);
   playTxt.events.onInputUp.add(this.restartGame, this);
   this.gameOverOverlay.add(playTxt);
 
-  // --- Leaderboard (local) ---
-  var lbTitle = game.add.bitmapText(160, 375, "ArialBlackWhite", "LEADERBOARD (TOP 10)", 16);
-  lbTitle.anchor.set(0.5);
-  this.gameOverOverlay.add(lbTitle);
-
-  this.leaderboardLines = [];
-  for (var i = 0; i < 6; i++) {
-    var line = game.add.bitmapText(160, 400 + i * 28, "ArialBlackWhite", "", 16);
-    line.anchor.set(0.5);
-    this.gameOverOverlay.add(line);
-    this.leaderboardLines.push(line);
-  }
+  
 
   // initially hidden
   this.gameOverOverlay.visible = false;
