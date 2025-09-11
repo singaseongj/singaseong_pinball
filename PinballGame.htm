@@ -30,7 +30,20 @@
 	<body>
 		<div class="background"></div>
 		<div class="pleasewait" id="loading"><div class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div>
-		<div id="content" oncontextmenu="return false;"></div>
-		<script src="PinballGame.js"></script>
-	</body>
+        <div id="content" oncontextmenu="return false;"></div>
+        <script>
+          window.addEventListener(
+            "keydown",
+            (e) => {
+              if (e.code === "KeyA" || e.code === "KeyD") {
+                if (e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
+                  e.stopPropagation();
+                }
+              }
+            },
+            true
+          );
+        </script>
+        <script src="PinballGame.js"></script>
+        </body>
 </html>
