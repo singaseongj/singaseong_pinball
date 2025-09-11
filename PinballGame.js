@@ -1454,215 +1454,179 @@ Pinball.Game.prototype = {
 		},
 
 	createGameOverOverlay: function() {
-  		this.gameOverOverlay = game.add.group();
-  		this.gameOverOverlay.fixedToCamera = true;
-  		this.gameOverOverlay.cameraOffset.setTo(0, 0);
+  // Group fixed to camera
+  this.gameOverOverlay = game.add.group();
+  this.gameOverOverlay.fixedToCamera = true;
 
- 		this.gameOverBackground = game.add.graphics(0, 0);
-		this.gameOverBackground.beginFill(0x000000, 0.8);
- 		this.gameOverBackground.drawRect(0, 0, 320, 608);
-  		this.gameOverOverlay.add(this.gameOverBackground);
-
- 		this.gameOverTitle = game.add.bitmapText(160, 150, "ArialBlackWhite", "GAME OVER", 32);
-  		this.gameOverTitle.anchor.set(0.5);
-  		this.gameOverOverlay.add(this.gameOverTitle);
-
-  		this.gameOverScore = game.add.bitmapText(160, 200, "ArialBlackWhite", "SCORE: 0", 24);
- 		this.gameOverScore.anchor.set(0.5);
-		this.gameOverOverlay.add(this.gameOverScore);
-
- 		// Buttons: add to group, don't set fixedToCamera on them
- 		// Play Again
- 		var playAgainBg = game.add.graphics(60, 260);
- 		playAgainBg.beginFill(0x022C5C, 1);
-  		playAgainBg.lineStyle(2, 0x0046A9, 1);
-  		playAgainBg.drawRoundedRect(0, 0, 200, 50, 10);
-  		this.gameOverOverlay.add(playAgainBg);
-
-  		this.playAgainButton = game.add.bitmapText(160, 285, "ArialBlackWhite", "PLAY AGAIN", 20);
-  		this.playAgainButton.anchor.set(0.5);
-  		this.playAgainButton.inputEnabled = true;
-  		this.playAgainButton.input.useHandCursor = true;
-  		this.playAgainButton.events.onInputUp.add(this.restartGame, this);
-  		this.gameOverOverlay.add(this.playAgainButton);
-
-  		// Main Menu
-  		var mainMenuBg = game.add.graphics(60, 330);
-  		mainMenuBg.beginFill(0x383838, 1);
-  		mainMenuBg.lineStyle(2, 0x707070, 1);
-  		mainMenuBg.drawRoundedRect(0, 0, 200, 50, 10);
-  		this.gameOverOverlay.add(mainMenuBg);
-
-  		this.mainMenuButton = game.add.bitmapText(160, 355, "ArialBlackWhite", "MAIN MENU", 20);
-  		this.mainMenuButton.anchor.set(0.5);
-  		this.mainMenuButton.inputEnabled = true;
-  		this.mainMenuButton.input.useHandCursor = true;
-  		this.mainMenuButton.events.onInputUp.add(this.goToMainMenu, this);
-  		this.gameOverOverlay.add(this.mainMenuButton);
-
-  		// Save Score
-  		var enterNameBg = game.add.graphics(60, 400);
-  		enterNameBg.beginFill(0x5C0222, 1);
-  		enterNameBg.lineStyle(2, 0xA90046, 1);
-  		enterNameBg.drawRoundedRect(0, 0, 200, 50, 10);
-  		this.gameOverOverlay.add(enterNameBg);
-
-  		this.enterNameButton = game.add.bitmapText(160, 425, "ArialBlackWhite", "SAVE SCORE", 20);
-  		this.enterNameButton.anchor.set(0.5);
-  		this.enterNameButton.inputEnabled = true;
-  		this.enterNameButton.input.useHandCursor = true;
-  		this.enterNameButton.events.onInputUp.add(this.showNameInput, this);
-  		this.gameOverOverlay.add(this.enterNameButton);
-
-  		this.gameOverOverlay.visible = false;
-	},
-
-	createNameInputOverlay: function() {
-  this.nameInputOverlay = game.add.group();
-  this.nameInputOverlay.fixedToCamera = true;
-  this.nameInputOverlay.cameraOffset.setTo(0, 0);
-
+  // Dark backdrop
   var bg = game.add.graphics(0, 0);
-  bg.beginFill(0x000000, 0.9);
+  bg.beginFill(0x000000, 0.85);
   bg.drawRect(0, 0, 320, 608);
-  this.nameInputOverlay.add(bg);
+  this.gameOverOverlay.add(bg);
 
-  this.nameInputTitle = game.add.bitmapText(160, 200, "ArialBlackWhite", "ENTER YOUR NAME", 24);
-  this.nameInputTitle.anchor.set(0.5);
-  this.nameInputOverlay.add(this.nameInputTitle);
+  // Title
+  this.gameOverTitle = game.add.bitmapText(160, 140, "ArialBlackWhite", "GAME OVER", 32);
+  this.gameOverTitle.anchor.set(0.5);
+  this.gameOverOverlay.add(this.gameOverTitle);
 
-  var inputBg = game.add.graphics(60, 240);
-  inputBg.beginFill(0xFFFFFF, 1);
-  inputBg.lineStyle(2, 0x343434, 1);
-  inputBg.drawRoundedRect(0, 0, 200, 40, 5);
-  this.nameInputOverlay.add(inputBg);
+  // Final score
+  this.gameOverScore = game.add.bitmapText(160, 180, "ArialBlackWhite", "SCORE: 0", 22);
+  this.gameOverScore.anchor.set(0.5);
+  this.gameOverOverlay.add(this.gameOverScore);
 
-  this.nameInputField = game.add.bitmapText(160, 260, "ArialBlackWhite", "", 20);
+  // --- Name "textbox" ---
+  // box
+  var box = game.add.graphics(60, 215);
+  box.beginFill(0xFFFFFF, 1);
+  box.lineStyle(2, 0x343434, 1);
+  box.drawRect(0, 0, 200, 40);
+  this.gameOverOverlay.add(box);
+
+  // label
+  var nameLbl = game.add.bitmapText(60, 195, "ArialBlackWhite", "ENTER YOUR NAME", 16);
+  this.gameOverOverlay.add(nameLbl);
+
+  // live name display
+  this.playerName = "";
+  this.nameInputField = game.add.bitmapText(160, 235, "ArialBlackWhite", "", 20);
   this.nameInputField.anchor.set(0.5);
-  this.nameInputField.tint = 0x000000;
-  this.nameInputOverlay.add(this.nameInputField);
+  this.nameInputField.tint = 0x000000; // black text inside white box
+  this.gameOverOverlay.add(this.nameInputField);
 
-  var submitBg = game.add.graphics(60, 300);
-  submitBg.beginFill(0x022C5C, 1);
-  submitBg.lineStyle(2, 0x0046A9, 1);
-  submitBg.drawRoundedRect(0, 0, 200, 40, 10);
-  this.nameInputOverlay.add(submitBg);
+  // --- Save button ---
+  var saveBg = game.add.graphics(60, 265);
+  saveBg.beginFill(0x022C5C, 1);
+  saveBg.lineStyle(2, 0x0046A9, 1);
+  saveBg.drawRect(0, 0, 200, 40);
+  saveBg.inputEnabled = true;
+  saveBg.input.useHandCursor = true;
+  saveBg.events.onInputUp.add(this.saveScore, this);
+  this.gameOverOverlay.add(saveBg);
 
-  this.nameInputSubmit = game.add.bitmapText(160, 320, "ArialBlackWhite", "SUBMIT", 16);
+  this.nameInputSubmit = game.add.bitmapText(160, 285, "ArialBlackWhite", "SAVE", 18);
   this.nameInputSubmit.anchor.set(0.5);
   this.nameInputSubmit.inputEnabled = true;
   this.nameInputSubmit.input.useHandCursor = true;
   this.nameInputSubmit.events.onInputUp.add(this.saveScore, this);
-  this.nameInputOverlay.add(this.nameInputSubmit);
+  this.gameOverOverlay.add(this.nameInputSubmit);
 
-  var cancelBg = game.add.graphics(60, 360);
-  cancelBg.beginFill(0x383838, 1);
-  cancelBg.lineStyle(2, 0x707070, 1);
-  cancelBg.drawRoundedRect(0, 0, 200, 40, 10);
-  this.nameInputOverlay.add(cancelBg);
+  // --- Play Again button ---
+  var playBg = game.add.graphics(60, 315);
+  playBg.beginFill(0x383838, 1);
+  playBg.lineStyle(2, 0x707070, 1);
+  playBg.drawRect(0, 0, 200, 40);
+  playBg.inputEnabled = true;
+  playBg.input.useHandCursor = true;
+  playBg.events.onInputUp.add(this.restartGame, this);
+  this.gameOverOverlay.add(playBg);
 
-  this.nameInputCancel = game.add.bitmapText(160, 380, "ArialBlackWhite", "BACK TO MENU", 16);
-  this.nameInputCancel.anchor.set(0.5);
-  this.nameInputCancel.inputEnabled = true;
-  this.nameInputCancel.input.useHandCursor = true;
-  this.nameInputCancel.events.onInputUp.add(this.cancelNameInput, this);
-  this.nameInputOverlay.add(this.nameInputCancel);
+  var playTxt = game.add.bitmapText(160, 335, "ArialBlackWhite", "PLAY AGAIN", 18);
+  playTxt.anchor.set(0.5);
+  playTxt.inputEnabled = true;
+  playTxt.input.useHandCursor = true;
+  playTxt.events.onInputUp.add(this.restartGame, this);
+  this.gameOverOverlay.add(playTxt);
 
-  this.nameInputOverlay.visible = false;
+  // --- Leaderboard (local) ---
+  var lbTitle = game.add.bitmapText(160, 375, "ArialBlackWhite", "LEADERBOARD (TOP 10)", 16);
+  lbTitle.anchor.set(0.5);
+  this.gameOverOverlay.add(lbTitle);
+
+  this.leaderboardLines = [];
+  for (var i = 0; i < 6; i++) {
+    var line = game.add.bitmapText(160, 400 + i * 28, "ArialBlackWhite", "", 16);
+    line.anchor.set(0.5);
+    this.gameOverOverlay.add(line);
+    this.leaderboardLines.push(line);
+  }
+
+  // initially hidden
+  this.gameOverOverlay.visible = false;
 },
 
-	showGameOverOverlay: function() {
-  		this.gameOverActive = true;
-  		this.gameOverScore.setText("SCORE: " + this.scoreValue);
-  		this.gameOverOverlay.visible = true;
-  		game.physics.box2d.pause();
-  		game.world.bringToTop(this.gameOverOverlay);
+// Show GAME OVER with inline name input
+showGameOverOverlay: function() {
+  this.gameOverActive = true;
+  this.gameOverScore.setText("SCORE: " + this.scoreValue);
+  this.playerName = "";
+  this.nameInputField.setText("");
 
- 		// after a short pause, open name input
-  		game.time.events.add(800, this.showNameInput, this);
-	},
+  this.gameOverOverlay.visible = true;
+  game.world.bringToTop(this.gameOverOverlay);
 
-	hideGameOverOverlay: function()
-		{
-		this.gameOverActive = false;
-		this.gameOverOverlay.visible = false;
-		},
+  // Pause physics and enable typing
+  game.physics.box2d.pause();
+  game.input.keyboard.addCallbacks(this, this.onKeyDown, null, null);
 
-	showNameInput: function() {
- 		this.nameInputActive = true;
-  		this.playerName = "";
-  		this.nameInputField.setText("");
-  		this.nameInputOverlay.visible = true;
-  		game.world.bringToTop(this.nameInputOverlay);
+  // render leaderboard
+  this.renderLeaderboard();
+},
 
-  		// IMPORTANT: do NOT hide GAME OVER here if you want it in the background
-  		// this.hideGameOverOverlay();  // <-- remove this line
-  		game.input.keyboard.addCallbacks(this, this.onKeyDown, null, null);
-	},
+hideGameOverOverlay: function() {
+  this.gameOverActive = false;
+  this.gameOverOverlay.visible = false;
+  game.input.keyboard.removeCallbacks();
+},
 
-	hideNameInput: function()
-                {
-                this.nameInputActive = false;
-                this.nameInputOverlay.visible = false;
+// We no longer need a separate "name input overlay"
+showNameInput: function(){ /* not used anymore */ },
+hideNameInput: function(){ /* not used anymore */ },
 
-                // DISABLE KEYBOARD INPUT
-                game.input.keyboard.removeCallbacks();
-                },
+// Simple keyboard entry into the "textbox"
+onKeyDown: function(event) {
+  if (!this.gameOverActive) return;
 
-        cancelNameInput: function()
-                {
-                this.hideNameInput();
-                game.state.start("Pinball.Menu");
-                },
+  if (event.keyCode === 8) { // backspace
+    this.playerName = this.playerName.slice(0, -1);
+  } else if (event.keyCode === 13) { // enter -> save
+    this.saveScore();
+    return;
+  } else if (event.keyCode >= 32 && event.keyCode <= 126 && this.playerName.length < 12) {
+    this.playerName += String.fromCharCode(event.keyCode);
+  }
+  this.nameInputField.setText(this.playerName);
+},
 
-	onKeyDown: function(event)
-		{
-		if (!this.nameInputActive) return;
+// Persist + update leaderboard (uses your existing API + localStorage)
+saveScore: function() {
+  var name = (this.playerName || "").trim();
+  if (!name) return;
 
-		if (event.keyCode === 8) // BACKSPACE
-			{
-			this.playerName = this.playerName.slice(0, -1);
-			this.nameInputField.setText(this.playerName);
-			}
-		else if (event.keyCode === 13) // ENTER
-                        {
-                        this.saveScore();
-                        }
-                else if (event.keyCode >= 32 && event.keyCode <= 126 && this.playerName.length < 12)
-			{
-			this.playerName += String.fromCharCode(event.keyCode);
-			this.nameInputField.setText(this.playerName);
-			}
-		},
+  var newScore = {
+    name: name,
+    score: this.scoreValue,
+    time: parseFloat(game.time.totalElapsedSeconds()),
+    date: new Date().toISOString()
+  };
 
-	saveScore: function() {
-    var name = this.playerName.trim();
-    if (name.length > 0) {
-      var newScore = {
-        name: name,
-        score: this.scoreValue,
-        time: parseFloat(game.time.totalElapsedSeconds()),
-        date: new Date().toISOString()
-      };
+  // Fire-and-forget to Apps Script (as you had)
+  fetch(this.API_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(newScore)
+  }).catch(function(err){ console.error("Save to API failed:", err); });
 
-      fetch(this.API_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newScore)
-      }).then(function() {
-        var localScores = JSON.parse(localStorage.getItem("pinballLeaderboard") || "[]");
-        localScores.push(newScore);
-        localScores.sort(function(a, b){ return b.score - a.score; });
-        localStorage.setItem("pinballLeaderboard", JSON.stringify(localScores.slice(0, 10)));
-      }).catch(function(error) {
-        console.error("Failed to save score:", error);
-      });
+  // Local leaderboard
+  var localScores = JSON.parse(localStorage.getItem("pinballLeaderboard") || "[]");
+  localScores.push(newScore);
+  localScores.sort(function(a, b){ return b.score - a.score; });
+  localStorage.setItem("pinballLeaderboard", JSON.stringify(localScores.slice(0, 10)));
 
-      this.hideNameInput();
-      this.restartGame();
-    }
-  },
+  // Re-render list and optionally auto-restart
+  this.renderLeaderboard();
+
+  // If you want to auto-restart after save, uncomment:
+  // this.restartGame();
+},
+	renderLeaderboard: function() {
+  var localScores = JSON.parse(localStorage.getItem("pinballLeaderboard") || "[]");
+  for (var i = 0; i < this.leaderboardLines.length; i++) {
+    var entry = localScores[i];
+    var text = entry ? ((i+1)+". "+entry.name+" — "+entry.score) : "";
+    this.leaderboardLines[i].setText(text);
+  }
+},
 
 	restartGame: function()
 		{
