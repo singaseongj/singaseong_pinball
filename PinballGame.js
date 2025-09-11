@@ -719,6 +719,7 @@ Pinball.Game.prototype = {
 		this.isMobileDevice = null;
 
 		this.audioPlayer = null;
+		this.NAME_MAX_LEN = 12;
 		},
 
 	create: function()
@@ -1001,20 +1002,14 @@ Pinball.Game.prototype = {
 		this.ballBody.bullet = true;
 
 		// SETTING A CALLBACK WHEN THE BALL HITS THE FIRST GUTTER
-		this.ballBody.setFixtureContactCallback(this.gutterFixture1, function()
-			{
-			// SETTING THAT THE GAME IS OVER
-			this.gameOver = true;
-			this.showGameOverOverlay();
-			}, this);
-
-		// SETTING A CALLBACK WHEN THE BALL HITS THE SECOND GUTTER (FAILSAFE)
-		this.ballBody.setFixtureContactCallback(this.gutterFixture2, function()
-			{
-			// SETTING THAT THE GAME IS OVER
-			this.gameOver = true;
-			this.showGameOverOverlay();
-			}, this);
+		this.ballBody.setFixtureContactCallback(this.gutterFixture1, function(){
+  if (this.gameOverActive) return;
+  this.gameOver = true; this.showGameOverOverlay();
+}, this);
+this.ballBody.setFixtureContactCallback(this.gutterFixture2, function(){
+  if (this.gameOverActive) return;
+  this.gameOver = true; this.showGameOverOverlay();
+}, this);
 
 		// SETTING A CALLBACK WHEN THE BALL HITS THE LAUNCHER
 		this.ballBody.setFixtureContactCallback(this.launcherFixture, function()
@@ -1544,27 +1539,25 @@ Pinball.Game.prototype = {
 },
 
 // Show GAME OVER with inline name input
-showGameOverOverlay: function() {
+showGameOverOverlay: function () {
+  if (this.gameOverActive) return;
   this.gameOverActive = true;
   this.gameOverScore.setText("SCORE: " + this.scoreValue);
-  this.playerName = "";
-  this.nameInputField.setText("");
-
+  this.playerName = ""; this.nameInputField.setText("");
   this.gameOverOverlay.visible = true;
   game.world.bringToTop(this.gameOverOverlay);
-
-  // Pause physics and enable typing
   game.physics.box2d.pause();
-  game.input.keyboard.addCallbacks(this, this.onKeyDown, null, null);
 
-  // render leaderboard
-  this.renderLeaderboard();
+  game.input.keyboard.addCallbacks(this, this.onKeyDown, null, null);
+  if (this.renderLeaderboard) this.renderLeaderboard();
+  this.showMobileInput();   // <— show the real input on mobile
 },
 
-hideGameOverOverlay: function() {
+hideGameOverOverlay: function () {
   this.gameOverActive = false;
   this.gameOverOverlay.visible = false;
   game.input.keyboard.removeCallbacks();
+  this.hideMobileInput();   // <—
 },
 
 // We no longer need a separate "name input overlay"
@@ -1585,94 +1578,203 @@ onKeyDown: function(event) {
   }
   this.nameInputField.setText(this.playerName);
 },
+ensureMobileInput: function () {
+  if (this._domInput) return;
+  var inp = document.createElement('input');
+  inp.type = 'text';
+  inp.maxLength = this.NAME_MAX_LEN || 12;
+  inp.autocapitalize = 'words';
+  inp.autocomplete = 'off';
+  inp.autocorrect = 'off';
+  inp.inputMode = 'text';
+  inp.style.position = 'absolute';
+  inp.style.zIndex = 1000;
+  inp.style.fontSize = '18px';
+  inp.style.padding = '6px 8px';
+  inp.style.border = '2px solid #343434';
+  inp.style.background = '#fff';
+  inp.style.color = '#000';
+  inp.style.display = 'none';
+  (game.canvas.parentNode || document.body).appendChild(inp);
+  this._domInput = inp;
+
+  var self = this;
+  inp.addEventListener('input', function(){
+    self.playerName = (inp.value || '').slice(0, self.NAME_MAX_LEN || 12);
+    self.nameInputField.setText(self.playerName);
+  });
+  inp.addEventListener('keydown', function(e){
+    if (e.key === 'Enter') { e.preventDefault(); self.saveScore(); }
+  });
+
+  window.addEventListener('resize', function(){ self.positionMobileInput(); });
+},
+
+positionMobileInput: function () {
+  if (!this._domInput) return;
+  // Canvas rect in page coords
+  var rect = game.canvas.getBoundingClientRect();
+
+  // Your UI is designed for 320x608; find the scale used
+  var scale = Math.min(window.innerWidth / 320, window.innerHeight / 608);
+
+  // Name box is at (60,215) size 200x40 in your overlay coordinates
+  var left = rect.left + (60 * scale);
+  var top  = rect.top  + (215 * scale);
+  var w    = 200 * scale;
+  var h    = 40 * scale;
+
+  var s = this._domInput.style;
+  s.left = left + 'px';
+  s.top = top + 'px';
+  s.width = w + 'px';
+  s.height = (h - 4) + 'px';
+  s.fontSize = (18 * scale) + 'px';
+},
+
+showMobileInput: function () {
+  this.ensureMobileInput();
+  this._domInput.value = this.playerName || '';
+  this.positionMobileInput();
+  this._domInput.style.display = 'block';
+  // Focus after a tick so browsers reliably show keyboard
+  setTimeout(() => this._domInput.focus(), 0);
+},
+
+hideMobileInput: function () {
+  if (!this._domInput) return;
+  this._domInput.style.display = 'none';
+  this._domInput.blur();
+}
 
 // Persist + update leaderboard (uses your existing API + localStorage)
 saveScore: function () {
-  if (this._savingScore) return;  // prevent double taps
-
-  var name = (this.playerName || "").trim().slice(0, this.NAME_MAX_LEN);
-  if (!name) return;
-
+  if (this._savingScore) return; // prevent double taps
   this._savingScore = true;
 
-  var newScore = {
+  var MAX = this.NAME_MAX_LEN || 12;
+  var name = (this.playerName || "")
+               .replace(/\s+/g, " ")  // collapse spaces
+               .trim()
+               .slice(0, MAX);
+
+  if (!name) {
+    // tiny visual nudge if empty
+    if (this.nameInputField) {
+      this.nameInputField.tint = 0xCC0000;
+      game.time.events.add(150, function(){ this.nameInputField.tint = 0x000000; }, this);
+    }
+    this._savingScore = false;
+    return;
+  }
+
+  var payload = {
     name: name,
-    score: this.scoreValue,
-    time: parseFloat(game.time.totalElapsedSeconds()),
+    score: (this.scoreValue|0),
+    time: Math.round(game.time.totalElapsedSeconds() * 1000) / 1000, // seconds
     date: new Date().toISOString()
   };
 
-  // Fire-and-forget remote save
-  fetch(this.API_URL, {
-    method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(newScore)
-  }).catch(function (err) { console.error("Save to API failed:", err); });
-
-  // Local leaderboard
-  var localScores = JSON.parse(localStorage.getItem("pinballLeaderboard") || "[]");
-  localScores.push(newScore);
-  localScores.sort(function (a, b) { return b.score - a.score; });
-  localStorage.setItem("pinballLeaderboard", JSON.stringify(localScores.slice(0, 10)));
-
-  // Clean up UI + go to main menu
-  this.hideGameOverOverlay();
-  // If you have a helper: this.goToMainMenu();
-  game.state.start("Pinball.Menu");
-},
-	renderLeaderboard: function() {
-  var localScores = JSON.parse(localStorage.getItem("pinballLeaderboard") || "[]");
-  for (var i = 0; i < this.leaderboardLines.length; i++) {
-    var entry = localScores[i];
-    var text = entry ? ((i+1)+". "+entry.name+" — "+entry.score) : "";
-    this.leaderboardLines[i].setText(text);
+  // --- Local leaderboard (top 10) ---
+  try {
+    var list = JSON.parse(localStorage.getItem("pinballLeaderboard") || "[]");
+    list.push(payload);
+    // sort: higher score first; if tie, shorter time first
+    list.sort(function(a, b){
+      if (b.score !== a.score) return b.score - a.score;
+      return (a.time || 0) - (b.time || 0);
+    });
+    list = list.slice(0, 10);
+    localStorage.setItem("pinballLeaderboard", JSON.stringify(list));
+  } catch (e) {
+    console.warn("localStorage error:", e);
   }
+
+  // --- Remote save (best-effort) ---
+  try {
+    if (typeof navigator !== "undefined" && navigator.sendBeacon) {
+      var blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
+      navigator.sendBeacon(this.API_URL, blob);
+    } else if (window.fetch) {
+      fetch(this.API_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }).catch(function (err) { console.error("Save to API failed:", err); });
+    }
+  } catch (e) {
+    console.error("Remote save error:", e);
+  }
+
+  // --- HUD high score (if your getter/labels exist) ---
+  try {
+    if (this.getHighscore && this.highScoreLabel) {
+      var hs = this.getHighscore();
+      this.highScoreLabel.setText(hs);
+      if (this.highScoreLabelShadow) this.highScoreLabelShadow.setText(hs);
+    }
+  } catch (e) { /* non-fatal */ }
+
+  // keep DOM <input> in sync (mobile), then leave screen
+  if (this._domInput) this._domInput.value = name;
+  if (this.hideMobileInput) this.hideMobileInput();
+  this.hideGameOverOverlay();
+
+  // Go to main menu if available; otherwise soft-reset the game
+  if (game && game.state && game.state.states && game.state.states["Pinball.Menu"]) {
+    game.state.start("Pinball.Menu");
+  } else if (this.restartGame) {
+    this.restartGame();
+  }
+
+  this._savingScore = false; // safe even if we changed state
 },
 
 	// Call this from your Play Again button
 restartGame: function () {
-  // 1) Close GAME OVER UI + stop name typing
+  // Close UI & stop name typing
   this.hideGameOverOverlay();
 
-  // 2) Reset score UI
-  if (this.updateScore) this.updateScore(0);
-  else { this.scoreValue = 0; this.scoreLabel.setText("0"); this.scoreLabelShadow.setText("0"); }
+  // Pause physics while we teleport
+  game.physics.box2d.pause();
 
-  // 3) Reset ball to start position & zero motion
-  // NOTE: ballStart is in world units / PTM in your code (you set the body with *this.PTM)
-  this.ballBody.x = this.ballStart[0] * this.PTM;
-  this.ballBody.y = this.ballStart[1] * this.PTM;
-  if (this.ballBody.SetLinearVelocity) this.ballBody.SetLinearVelocity({ x: 0, y: 0 });
+  // 1) Temporarily disable gutter sensors so they don't re-fire
+  if (this.gutterFixture1) this.gutterFixture1.SetSensor(false);
+  if (this.gutterFixture2) this.gutterFixture2.SetSensor(false);
+
+  // 2) Reset score/UI
+  this.updateScore ? this.updateScore(0) : (this.scoreValue=0, this.scoreLabel.setText("0"), this.scoreLabelShadow.setText("0"));
+
+  // 3) Reset ball transform & velocities (use underlying Box2D if available)
+  var x = this.ballStart[0] * this.PTM, y = this.ballStart[1] * this.PTM;
+  if (this.ballBody.setTransform) this.ballBody.setTransform(x, y, 0);
+  else if (this.ballBody.body && this.ballBody.body.SetTransform) this.ballBody.body.SetTransform({x:x, y:y}, 0);
+  else { this.ballBody.x = x; this.ballBody.y = y; }
+  if (this.ballBody.SetLinearVelocity) this.ballBody.SetLinearVelocity({x:0, y:0});
   if (this.ballBody.SetAngularVelocity) this.ballBody.SetAngularVelocity(0);
-  this.ballBody.angle = 0;
+  if (this.ballBody.setAwake) this.ballBody.setAwake(true);
+  if (this.ballBody.setActive) this.ballBody.setActive(true);
 
-  // 4) Sync the ball sprite position immediately
+  // 4) Sync sprite immediately
   this.ballSprite.position.x = this.ballBody.x * 0.10 - 6;
   this.ballSprite.position.y = this.ballBody.y * 0.10 - 6;
 
-  // 5) Put flippers back down
-  this.leftFlipper.angle = 27;
-  this.rightFlipper.angle = -27;
+  // 5) Reset flippers & lights
+  this.leftFlipper.angle = 27; this.rightFlipper.angle = -27;
+  for (var i=0;i<this.mediumCirclesHitList.length;i++){ this.mediumCirclesHitList[i].visible=false; this.mediumCirclesGlowList[i].visible=false; }
+  for (var j=0;j<this.largeCirclesHitList.length;j++){ this.largeCirclesHitList[j].visible=false; this.largeCirclesGlowList[j].visible=false; }
 
-  // 6) Hide any hit/glow visuals
-  for (var i = 0; i < this.mediumCirclesHitList.length; i++) {
-    this.mediumCirclesHitList[i].visible = false;
-    this.mediumCirclesGlowList[i].visible = false;
-  }
-  for (var j = 0; j < this.largeCirclesHitList.length; j++) {
-    this.largeCirclesHitList[j].visible = false;
-    this.largeCirclesGlowList[j].visible = false;
-  }
+  // 6) Clear flags
+  this.gameOver = false; this.gameOverActive = false;
+  this.launcherIsMoving = false; this.launcherGoingUp = false;
 
-  // 7) Clear transient flags
-  this.gameOver = false;
-  this.gameOverActive = false;
-  this.launcherIsMoving = false;
-  this.launcherGoingUp = false;
-
-  // 8) Resume Box2D
+  // 7) Resume physics, then re-enable sensors on the next tick
   game.physics.box2d.resume();
+  game.time.events.add(60, function(){
+    if (this.gutterFixture1) this.gutterFixture1.SetSensor(true);
+    if (this.gutterFixture2) this.gutterFixture2.SetSensor(true);
+  }, this);
 },
 
 	goToMainMenu: function()
