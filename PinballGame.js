@@ -214,132 +214,207 @@ Pinball.Menu.prototype = {
 		this.leaderboardButton = null;
 		},
 
-	create: function()
-		{
-		// GETTING THE SOUND PREFERENCE
-		GAME_SOUND_ENABLED = this.getBooleanSetting("GAME_SOUND_ENABLED");
+	create: function () {
+  // ==== Hard reset camera / world / scale (prevents down-right drift) ====
+  game.world.setBounds(0, 0, 320, 608);
+  game.world.position.set(0, 0);
+  game.world.pivot.set(0, 0);
+  if (game.camera) game.camera.setPosition(0, 0);
 
-		// ADDING THE BACKGROUND IMAGE
-		this.menuMainBackgroundImage = game.add.sprite(0, 0, "imageMenuBackground");
+  if (typeof resizeF === "function") {
+    resizeF();
+  } else {
+    game.scale.scaleMode = Phaser.ScaleManager.USER_SCALE;
+    var sx = window.innerWidth / 320, sy = window.innerHeight / 608;
+    var s  = Math.min(sx, sy);
+    game.scale.setUserScale(s, s);
+    game.scale.pageAlignHorizontally = true;
+    game.scale.pageAlignVertically   = true;
+    game.scale.refresh();
+  }
+  window.scrollTo(0, 0);
+  setTimeout(function () {
+    window.scrollTo(0, 0);
+    if (game.scale) game.scale.refresh();
+    if (game.camera) game.camera.setPosition(0, 0);
+  }, 50);
 
-		// ADDING THE BACKGROUND GRAY LAYER
-		this.menuMainBackgroundImageGrayLayer = game.add.graphics(0, 0);
-		this.menuMainBackgroundImageGrayLayer.beginFill(0x000000, 0.5);
-		this.menuMainBackgroundImageGrayLayer.drawRect(0, 0, game.width, game.height);
-		this.menuMainBackgroundImageGrayLayer.endFill();
+  // ==== Preferences ====
+  GAME_SOUND_ENABLED = this.getBooleanSetting("GAME_SOUND_ENABLED");
 
-		// ADDING THE APP ICON SHADOW
-		this.menuMainAppIconShadow = game.add.sprite(0, 51, "imageMenuAppIcon");
-		this.menuMainAppIconShadow.scale.x = 0.7;
-		this.menuMainAppIconShadow.scale.y = 0.7;
-		this.menuMainAppIconShadow.tint = 0x000000;
-		this.menuMainAppIconShadow.alpha = 0.7;
-		this.menuMainAppIconShadow.position.x = game.width / 2 - this.menuMainAppIconShadow.width / 2 + 1;
+  // ==== All Menu UI lives in a fixed group ====
+  var ui = game.add.group();
+  ui.fixedToCamera = true;
+  ui.cameraOffset.setTo(0, 0);
 
-		// ADDING THE APP ICON
-		this.menuMainAppIcon = game.add.sprite(0, 50, "imageMenuAppIcon");
-		this.menuMainAppIcon.scale.x = 0.7;
-		this.menuMainAppIcon.scale.y = 0.7;
-		this.menuMainAppIcon.position.x = game.width / 2 - this.menuMainAppIcon.width / 2;
+  // Background image
+  this.menuMainBackgroundImage = game.add.sprite(0, 0, "imageMenuBackground");
+  ui.add(this.menuMainBackgroundImage);
 
-		// ADDING THE APP TITLE SHADOW
-		this.menuMainAppTitleShadow = game.add.bitmapText(0, 207, "ArialBlackWhiteBig", "Pinball", 35);
-		this.menuMainAppTitleShadow.height = 37;
-		this.menuMainAppTitleShadow.position.x = game.width / 2 - this.menuMainAppTitleShadow.width / 2 + 2;
-		this.menuMainAppTitleShadow.tint = 0x000000;
+  // Gray overlay
+  this.menuMainBackgroundImageGrayLayer = game.add.graphics(0, 0);
+  this.menuMainBackgroundImageGrayLayer.beginFill(0x000000, 0.5);
+  this.menuMainBackgroundImageGrayLayer.drawRect(0, 0, game.width, game.height);
+  this.menuMainBackgroundImageGrayLayer.endFill();
+  ui.add(this.menuMainBackgroundImageGrayLayer);
 
-		// ADDING THE APP TITLE
-		this.menuMainAppTitle = game.add.bitmapText(0, 205, "ArialBlackWhiteBig", "Singaseong\nPinball", 35);
-		// Adjust size and centering
-		this.menuMainAppTitle.height = 50;
-		this.menuMainAppTitle.position.x = game.width / 2 - this.menuMainAppTitle.width / 2;
+  // App icon (shadow)
+  this.menuMainAppIconShadow = game.add.sprite(0, 51, "imageMenuAppIcon");
+  this.menuMainAppIconShadow.scale.set(0.7);
+  this.menuMainAppIconShadow.tint = 0x000000;
+  this.menuMainAppIconShadow.alpha = 0.7;
+  this.menuMainAppIconShadow.position.x = game.width / 2 - this.menuMainAppIconShadow.width / 2 + 1;
+  ui.add(this.menuMainAppIconShadow);
 
-		// ADDING THE APP VERSION SHADOW
-		this.menuMainAppVersionShadow = game.add.bitmapText(0, 256, "ArialBlackShadow", "ver 1.2", 18);
-		this.menuMainAppVersionShadow.height = 21;
-		this.menuMainAppVersionShadow.tint = 0x000000;
-		this.menuMainAppVersionShadow.position.x = game.width / 2 - this.menuMainAppVersionShadow.width / 2 + 1;
+  // App icon
+  this.menuMainAppIcon = game.add.sprite(0, 50, "imageMenuAppIcon");
+  this.menuMainAppIcon.scale.set(0.7);
+  this.menuMainAppIcon.position.x = game.width / 2 - this.menuMainAppIcon.width / 2;
+  ui.add(this.menuMainAppIcon);
 
-		// ADDING THE APP VERSION
-		this.menuMainAppVersion = game.add.bitmapText(0, 255, "ArialBlackShadow", "ver 1.2", 18);
-		this.menuMainAppVersion.height = 21;
-		this.menuMainAppVersion.position.x = game.width / 2 - this.menuMainAppVersion.width / 2;
+  // Title (shadow)
+  this.menuMainAppTitleShadow = game.add.bitmapText(0, 207, "ArialBlackWhiteBig", "Pinball", 35);
+  this.menuMainAppTitleShadow.height = 37;
+  this.menuMainAppTitleShadow.position.x = game.width / 2 - this.menuMainAppTitleShadow.width / 2 + 2;
+  this.menuMainAppTitleShadow.tint = 0x000000;
+  ui.add(this.menuMainAppTitleShadow);
 
-		// ADDING THE PLAY BUTTON
-		this.menuMainPlayButton = game.add.button(0, 470, "imageMenuButton", null, this, 2, 1, 0);
-		this.menuMainPlayButton.position.x = game.width / 2 - this.menuMainPlayButton.width - 20;
-		this.menuMainPlayButton.onInputDown.add(function(){if(this.clickTimestamp==null){this.clickTimestamp=this.getCurrentTime();this.clickPositionX=this.game.input.activePointer.position.x;this.clickPositionY=this.game.input.activePointer.position.y;}},this);
-		this.menuMainPlayButton.onInputUp.add(this.playGame, this);
+  // Title
+  this.menuMainAppTitle = game.add.bitmapText(0, 205, "ArialBlackWhiteBig", "Singaseong\nPinball", 35);
+  this.menuMainAppTitle.height = 50;
+  this.menuMainAppTitle.position.x = game.width / 2 - this.menuMainAppTitle.width / 2;
+  ui.add(this.menuMainAppTitle);
 
-		// ADDING THE PLAY BUTTON ICON
-		this.menuMainPlayButtonIcon = game.add.button(0, this.menuMainPlayButton.position.y + 19, "imageMenuPlay", null, this, 2, 1, 0);
-		this.menuMainPlayButtonIcon.position.x = this.menuMainPlayButton.position.x + this.menuMainPlayButton.width / 2 - this.menuMainPlayButtonIcon.width / 2 + 2;
-		this.menuMainPlayButtonIcon.onInputDown.add(function(){if(this.clickTimestamp==null){this.clickTimestamp=this.getCurrentTime();this.clickPositionX=this.game.input.activePointer.position.x;this.clickPositionY=this.game.input.activePointer.position.y;}},this);
-		this.menuMainPlayButtonIcon.onInputUp.add(this.playGame, this);
+  // Version (shadow)
+  this.menuMainAppVersionShadow = game.add.bitmapText(0, 256, "ArialBlackShadow", "ver 1.2", 18);
+  this.menuMainAppVersionShadow.height = 21;
+  this.menuMainAppVersionShadow.tint = 0x000000;
+  this.menuMainAppVersionShadow.position.x = game.width / 2 - this.menuMainAppVersionShadow.width / 2 + 1;
+  ui.add(this.menuMainAppVersionShadow);
 
-		// ADDING THE SOUND BUTTON
-		this.menuMainSoundButton = game.add.button(0, 470, "imageMenuButton", null, this, 2, 1, 0);
-		this.menuMainSoundButton.position.x = game.width / 2 + 20;
-		this.menuMainSoundButton.onInputDown.add(function(){if(this.clickTimestamp==null){this.clickTimestamp=this.getCurrentTime();this.clickPositionX=this.game.input.activePointer.position.x;this.clickPositionY=this.game.input.activePointer.position.y;}},this);
-		this.menuMainSoundButton.onInputUp.add(this.toggleSound, this);
+  // Version
+  this.menuMainAppVersion = game.add.bitmapText(0, 255, "ArialBlackShadow", "ver 1.2", 18);
+  this.menuMainAppVersion.height = 21;
+  this.menuMainAppVersion.position.x = game.width / 2 - this.menuMainAppVersion.width / 2;
+  ui.add(this.menuMainAppVersion);
 
-		// ADDING THE SOUND BUTTON ICON
-		this.menuMainSoundButtonIcon = game.add.button(0, this.menuMainSoundButton.position.y + 19, "imageMenuSoundOn", null, this, 2, 1, 0);
-		this.menuMainSoundButtonIcon.position.x = this.menuMainSoundButton.position.x + this.menuMainSoundButton.width / 2 - this.menuMainSoundButtonIcon.width / 2 + 2;
-		this.menuMainSoundButtonIcon.onInputDown.add(function(){if(this.clickTimestamp==null){this.clickTimestamp=this.getCurrentTime();this.clickPositionX=this.game.input.activePointer.position.x;this.clickPositionY=this.game.input.activePointer.position.y;}},this);
-		this.menuMainSoundButtonIcon.onInputUp.add(this.toggleSound, this);
+  // Play button
+  this.menuMainPlayButton = game.add.button(0, 470, "imageMenuButton", null, this, 2, 1, 0);
+  this.menuMainPlayButton.position.x = game.width / 2 - this.menuMainPlayButton.width - 20;
+  this.menuMainPlayButton.onInputDown.add(function () {
+    if (this.clickTimestamp == null) {
+      this.clickTimestamp = this.getCurrentTime();
+      this.clickPositionX = this.game.input.activePointer.position.x;
+      this.clickPositionY = this.game.input.activePointer.position.y;
+    }
+  }, this);
+  this.menuMainPlayButton.onInputUp.add(this.playGame, this);
+  ui.add(this.menuMainPlayButton);
 
-		// CHECKING IF THE SOUND IS DISABLED
-		if (GAME_SOUND_ENABLED==false)
-			{
-			// SHOWING THE SOUND DISABLED IMAGES
-			this.menuMainSoundButton.loadTexture("imageMenuButtonDisabled");
-			this.menuMainSoundButtonIcon.loadTexture("imageMenuSoundOff");
-			}
-		else
-			{
-			// SHOWING THE SOUND ENABLED IMAGES
-			this.menuMainSoundButton.loadTexture("imageMenuButton");
-			this.menuMainSoundButtonIcon.loadTexture("imageMenuSoundOn");
-			}
+  // Play icon
+  this.menuMainPlayButtonIcon = game.add.button(
+    0,
+    this.menuMainPlayButton.position.y + 19,
+    "imageMenuPlay",
+    null,
+    this,
+    2, 1, 0
+  );
+  this.menuMainPlayButtonIcon.position.x =
+    this.menuMainPlayButton.position.x + this.menuMainPlayButton.width / 2 - this.menuMainPlayButtonIcon.width / 2 + 2;
+  this.menuMainPlayButtonIcon.onInputDown.add(function () {
+    if (this.clickTimestamp == null) {
+      this.clickTimestamp = this.getCurrentTime();
+      this.clickPositionX = this.game.input.activePointer.position.x;
+      this.clickPositionY = this.game.input.activePointer.position.y;
+    }
+  }, this);
+  this.menuMainPlayButtonIcon.onInputUp.add(this.playGame, this);
+  ui.add(this.menuMainPlayButtonIcon);
 
-		// === LEADERBOARD BUTTON (centered above Play/Sound) ===
-		var lbWidth  = 240;
-		var lbHeight = 56;
-		var lbX = game.width / 2 - lbWidth / 2;
-		var lbY = this.menuMainPlayButton.position.y - 90; // sits above the Play/Sound row
+  // Sound button
+  this.menuMainSoundButton = game.add.button(0, 470, "imageMenuButton", null, this, 2, 1, 0);
+  this.menuMainSoundButton.position.x = game.width / 2 + 20;
+  this.menuMainSoundButton.onInputDown.add(function () {
+    if (this.clickTimestamp == null) {
+      this.clickTimestamp = this.getCurrentTime();
+      this.clickPositionX = this.game.input.activePointer.position.x;
+      this.clickPositionY = this.game.input.activePointer.position.y;
+    }
+  }, this);
+  this.menuMainSoundButton.onInputUp.add(this.toggleSound, this);
+  ui.add(this.menuMainSoundButton);
 
-		// Background shape
-		this.leaderboardBg = game.add.graphics(0, 0);
-		this.leaderboardBg.beginFill(0x5C0222, 1);
-		this.leaderboardBg.lineStyle(2, 0xA90046, 1);
-		this.leaderboardBg.drawRoundedRect(lbX, lbY, lbWidth, lbHeight, 10);
-		this.leaderboardBg.endFill();
-		this.leaderboardBg.inputEnabled = true;
-		this.leaderboardBg.input.useHandCursor = true;
-		this.leaderboardBg.events.onInputDown.add(function(){
-			if (this.clickTimestamp==null){
-				this.clickTimestamp=this.getCurrentTime();
-				this.clickPositionX=this.game.input.activePointer.position.x;
-				this.clickPositionY=this.game.input.activePointer.position.y;
-			}
-		}, this);
-		this.leaderboardBg.events.onInputUp.add(this.goLeaderboard, this);
+  // Sound icon
+  this.menuMainSoundButtonIcon = game.add.button(
+    0,
+    this.menuMainSoundButton.position.y + 19,
+    "imageMenuSoundOn",
+    null,
+    this,
+    2, 1, 0
+  );
+  this.menuMainSoundButtonIcon.position.x =
+    this.menuMainSoundButton.position.x + this.menuMainSoundButton.width / 2 - this.menuMainSoundButtonIcon.width / 2 + 2;
+  this.menuMainSoundButtonIcon.onInputDown.add(function () {
+    if (this.clickTimestamp == null) {
+      this.clickTimestamp = this.getCurrentTime();
+      this.clickPositionX = this.game.input.activePointer.position.x;
+      this.clickPositionY = this.game.input.activePointer.position.y;
+    }
+  }, this);
+  this.menuMainSoundButtonIcon.onInputUp.add(this.toggleSound, this);
+  ui.add(this.menuMainSoundButtonIcon);
 
-		// Text label (also clickable)
-		this.leaderboardButton = game.add.bitmapText(lbX + lbWidth/2, lbY + lbHeight/2, "ArialBlackWhite", "LEADERBOARD", 22);
-		this.leaderboardButton.anchor.setTo(0.5, 0.5);
-		this.leaderboardButton.inputEnabled = true;
-		this.leaderboardButton.input.useHandCursor = true;
-		this.leaderboardButton.events.onInputDown.add(function(){
-			if (this.clickTimestamp==null){
-				this.clickTimestamp=this.getCurrentTime();
-				this.clickPositionX=this.game.input.activePointer.position.x;
-				this.clickPositionY=this.game.input.activePointer.position.y;
-			}
-		}, this);
-		this.leaderboardButton.events.onInputUp.add(this.goLeaderboard, this);
-		},
+  // Reflect sound state
+  if (GAME_SOUND_ENABLED == false) {
+    this.menuMainSoundButton.loadTexture("imageMenuButtonDisabled");
+    this.menuMainSoundButtonIcon.loadTexture("imageMenuSoundOff");
+  } else {
+    this.menuMainSoundButton.loadTexture("imageMenuButton");
+    this.menuMainSoundButtonIcon.loadTexture("imageMenuSoundOn");
+  }
+
+  // === Leaderboard button (centered, above Play/Sound) ===
+  var lbWidth = 240, lbHeight = 56;
+  var lbX = game.width / 2 - lbWidth / 2;
+  var lbY = this.menuMainPlayButton.position.y - 90;
+
+  // Background shape — add to group BEFORE enabling input
+  this.leaderboardBg = game.add.graphics(0, 0);
+  this.leaderboardBg.beginFill(0x5C0222, 1);
+  this.leaderboardBg.lineStyle(2, 0xA90046, 1);
+  this.leaderboardBg.drawRoundedRect(lbX, lbY, lbWidth, lbHeight, 10);
+  this.leaderboardBg.endFill();
+  ui.add(this.leaderboardBg);
+  this.leaderboardBg.inputEnabled = true;
+  if (this.leaderboardBg.input) this.leaderboardBg.input.useHandCursor = true;
+  this.leaderboardBg.events.onInputDown.add(function () {
+    if (this.clickTimestamp == null) {
+      this.clickTimestamp = this.getCurrentTime();
+      this.clickPositionX = this.game.input.activePointer.position.x;
+      this.clickPositionY = this.game.input.activePointer.position.y;
+    }
+  }, this);
+  this.leaderboardBg.events.onInputUp.add(this.goLeaderboard, this);
+
+  // Label — add to group BEFORE enabling input
+  this.leaderboardButton = game.add.bitmapText(
+    lbX + lbWidth / 2, lbY + lbHeight / 2, "ArialBlackWhite", "LEADERBOARD", 22
+  );
+  this.leaderboardButton.anchor.set(0.5);
+  ui.add(this.leaderboardButton);
+  this.leaderboardButton.inputEnabled = true;
+  if (this.leaderboardButton.input) this.leaderboardButton.input.useHandCursor = true;
+  this.leaderboardButton.events.onInputDown.add(function () {
+    if (this.clickTimestamp == null) {
+      this.clickTimestamp = this.getCurrentTime();
+      this.clickPositionX = this.game.input.activePointer.position.x;
+      this.clickPositionY = this.game.input.activePointer.position.y;
+    }
+  }, this);
+  this.leaderboardButton.events.onInputUp.add(this.goLeaderboard, this);
+},
 
 	getBooleanSetting: function(settingName)
 		{
