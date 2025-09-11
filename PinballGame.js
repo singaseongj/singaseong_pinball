@@ -796,7 +796,7 @@ Pinball.Game.prototype = {
 		this.playerName = "";
 
 		this.leaderboardData = [];
-        this.API_URL = GOOGLE_SCRIPT_URL;
+        this.API_URL = "https://script.google.com/macros/s/AKfycbz5pBJY9qeYThLk1GGDAXAibEey9_hazpRi3PbaY3MuU0h2_1tr8OfSrzTa5IUJMj0/exec";
 
 		this.isMobileDevice = null;
 
