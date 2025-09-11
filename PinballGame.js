@@ -1529,9 +1529,11 @@ backBg.lineStyle(2, 0x6A6A6A, 1);
 backBg.drawRect(0, 0, 200, 40);
 backBg.inputEnabled = true;
 backBg.input.useHandCursor = true;
-backBg.events.onInputUp.add(this.goToMainMenu, this);
+backBg.events.onInputUp.add(function(){
+	game.state.start("Pinball.menu");
+}, this)
 this.gameOverOverlay.add(backBg);
-
+		
 var backTxt = game.add.bitmapText(160, 385, "ArialBlackWhite", "BACK TO MENU", 18);
 backTxt.anchor.set(0.5);
 backTxt.inputEnabled = true;
