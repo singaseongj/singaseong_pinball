@@ -2303,6 +2303,16 @@ function fetchLeaderboard() {
         .then(function (res) { return res.json(); })
         .then(function (data) {
           var remoteScores = Array.isArray(data.scores) ? data.scores : [];
+			remoteScores = remoteScores
+            .map(function (row) {
+              if (Array.isArray(row)) {
+                return { name: row[0], score: row[1], date: row[2] };
+              }
+              return row;
+            })
+            .filter(function (entry) {
+              return entry && entry.name && entry.score !== undefined;
+            });
           finalizeScores(remoteScores);
         })
         .catch(function () {
@@ -2400,6 +2410,10 @@ Pinball.Leaderboard.prototype = {
     for (var i = 0; i < topScores.length; i++)
     {
       var rank = (i + 1).toString();
+	  var entry = topScores[i] || {};
+      var name = (entry.name || "").toString().substring(0, 12);
+      var score = (entry.score !== undefined ? entry.score : "").toString();
+
       var name = topScores[i].name.substring(0, 12); // LIMIT NAME LENGTH
       var score = topScores[i].score.toString();
 
