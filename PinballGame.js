@@ -1587,9 +1587,13 @@ onKeyDown: function(event) {
 },
 
 // Persist + update leaderboard (uses your existing API + localStorage)
-saveScore: function() {
-  var name = (this.playerName || "").trim();
+saveScore: function () {
+  if (this._savingScore) return;  // prevent double taps
+
+  var name = (this.playerName || "").trim().slice(0, this.NAME_MAX_LEN);
   if (!name) return;
+
+  this._savingScore = true;
 
   var newScore = {
     name: name,
@@ -1598,25 +1602,24 @@ saveScore: function() {
     date: new Date().toISOString()
   };
 
-  // Fire-and-forget to Apps Script (as you had)
+  // Fire-and-forget remote save
   fetch(this.API_URL, {
     method: "POST",
     mode: "no-cors",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(newScore)
-  }).catch(function(err){ console.error("Save to API failed:", err); });
+  }).catch(function (err) { console.error("Save to API failed:", err); });
 
   // Local leaderboard
   var localScores = JSON.parse(localStorage.getItem("pinballLeaderboard") || "[]");
   localScores.push(newScore);
-  localScores.sort(function(a, b){ return b.score - a.score; });
+  localScores.sort(function (a, b) { return b.score - a.score; });
   localStorage.setItem("pinballLeaderboard", JSON.stringify(localScores.slice(0, 10)));
 
-  // Re-render list and optionally auto-restart
-  this.renderLeaderboard();
-
-  // If you want to auto-restart after save, uncomment:
-  // this.restartGame();
+  // Clean up UI + go to main menu
+  this.hideGameOverOverlay();
+  // If you have a helper: this.goToMainMenu();
+  game.state.start("Pinball.Menu");
 },
 	renderLeaderboard: function() {
   var localScores = JSON.parse(localStorage.getItem("pinballLeaderboard") || "[]");
@@ -1627,22 +1630,50 @@ saveScore: function() {
   }
 },
 
-	restartGame: function()
-		{
-		this.hideGameOverOverlay();
-		this.updateScore(0);
-		this.gameOver = false;
-		
-		// RESET BALL POSITION
-		this.ballBody.x = this.ballStart[0] * this.PTM;
-		this.ballBody.y = this.ballStart[1] * this.PTM;
-		this.ballBody.velocity.x = 0;
-		this.ballBody.velocity.y = 0;
-		this.ballBody.angularVelocity = 0;
+	// Call this from your Play Again button
+restartGame: function () {
+  // 1) Close GAME OVER UI + stop name typing
+  this.hideGameOverOverlay();
 
-		// RESUME PHYSICS
-		game.physics.box2d.resume();
-		},
+  // 2) Reset score UI
+  if (this.updateScore) this.updateScore(0);
+  else { this.scoreValue = 0; this.scoreLabel.setText("0"); this.scoreLabelShadow.setText("0"); }
+
+  // 3) Reset ball to start position & zero motion
+  // NOTE: ballStart is in world units / PTM in your code (you set the body with *this.PTM)
+  this.ballBody.x = this.ballStart[0] * this.PTM;
+  this.ballBody.y = this.ballStart[1] * this.PTM;
+  if (this.ballBody.SetLinearVelocity) this.ballBody.SetLinearVelocity({ x: 0, y: 0 });
+  if (this.ballBody.SetAngularVelocity) this.ballBody.SetAngularVelocity(0);
+  this.ballBody.angle = 0;
+
+  // 4) Sync the ball sprite position immediately
+  this.ballSprite.position.x = this.ballBody.x * 0.10 - 6;
+  this.ballSprite.position.y = this.ballBody.y * 0.10 - 6;
+
+  // 5) Put flippers back down
+  this.leftFlipper.angle = 27;
+  this.rightFlipper.angle = -27;
+
+  // 6) Hide any hit/glow visuals
+  for (var i = 0; i < this.mediumCirclesHitList.length; i++) {
+    this.mediumCirclesHitList[i].visible = false;
+    this.mediumCirclesGlowList[i].visible = false;
+  }
+  for (var j = 0; j < this.largeCirclesHitList.length; j++) {
+    this.largeCirclesHitList[j].visible = false;
+    this.largeCirclesGlowList[j].visible = false;
+  }
+
+  // 7) Clear transient flags
+  this.gameOver = false;
+  this.gameOverActive = false;
+  this.launcherIsMoving = false;
+  this.launcherGoingUp = false;
+
+  // 8) Resume Box2D
+  game.physics.box2d.resume();
+},
 
 	goToMainMenu: function()
 		{
