@@ -1433,7 +1433,6 @@ Pinball.Game.prototype = {
 		this.createGameOverOverlay();
 
 		// CREATING NAME INPUT OVERLAY
-		this.createNameInputOverlay();
 
 		// GETTING THE CURSOR KEY INPUTS
 		this.cursors = game.input.keyboard.createCursorKeys();
