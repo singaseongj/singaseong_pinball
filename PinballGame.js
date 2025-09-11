@@ -2378,7 +2378,7 @@ function fetchLeaderboard() {
       }
     }
   });
-},
+}
 
 // ADD LEADERBOARD STATE
 Pinball.Leaderboard = function(game) {};
