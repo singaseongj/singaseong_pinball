@@ -246,7 +246,7 @@ Pinball.Menu.prototype = {
   ui.add(this.menuMainAppTitle);
 
   // Version (shadow)
-  this.menuMainAppVersionShadow = game.add.bitmapText(0, 256, "ArialBlackShadow", "ver 1.2", 18);
+  this.menuMainAppVersionShadow = game.add.bitmapText(0, 266, "ArialBlackShadow", "ver 2.0", 18);
   this.menuMainAppVersionShadow.height = 21;
   this.menuMainAppVersionShadow.tint = 0x000000;
   this.menuMainAppVersionShadow.position.x = game.width / 2 - this.menuMainAppVersionShadow.width / 2 + 1;
