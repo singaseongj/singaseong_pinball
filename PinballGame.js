@@ -1512,10 +1512,6 @@ this.ballBody.setFixtureContactCallback(this.gutterFixture2, function(){
 		// GETTING THE CURSOR KEY INPUTS
 		this.cursors = game.input.keyboard.createCursorKeys();
 
-		// REGISTERING THE 'A' AND 'D' KEYS
-		this.keyA = game.input.keyboard.addKey(Phaser.Keyboard.A);
-		this.keyD = game.input.keyboard.addKey(Phaser.Keyboard.D);
-
 		// PAUSING THE BOX2D PHYSICS
 		game.physics.box2d.pause();
 
