@@ -634,13 +634,14 @@ Pinball.Game = function(game)
 	this.largeCirclesGlowList = [];
 
 	this.keyA = null;
-	this.keyD = null;
-	this.buttonANormal = null;
-	this.buttonAPressed = null;
-	this.buttonAHandler = null;
-	this.buttonBNormal = null;
-	this.buttonBPressed = null;
-	this.buttonBHandler = null;
+  	this.keyD = null;
+  	this.ignoreGameplayInput = false;
+  	this.buttonANormal = null;
+  	this.buttonAPressed = null;
+  	this.buttonAHandler = null;
+  	this.buttonBNormal = null;
+  	this.buttonBPressed = null;
+  	this.buttonBHandler = null;
 
 	// NEW TAB BUTTONS
 	this.leftTabButton = null;
@@ -1530,8 +1531,6 @@ this.ballBody.setFixtureContactCallback(this.gutterFixture2, function(){
 	// Temporarily disable gameplay keys while typing a name
 suspendGameplayInput: function () {
   this.ignoreGameplayInput = true;
-  if (this.keyA) this.keyA.enabled = false;
-  if (this.keyD) this.keyD.enabled = false;
 
   // Let A/D flow to your onKeyDown / DOM input
   if (game.input && game.input.keyboard && game.input.keyboard.removeKeyCapture) {
@@ -1542,8 +1541,6 @@ suspendGameplayInput: function () {
 // Re-enable gameplay keys after name entry is finished
 resumeGameplayInput: function () {
   this.ignoreGameplayInput = false;
-  if (this.keyA) this.keyA.enabled = true;
-  if (this.keyD) this.keyD.enabled = true;
 
   if (game.input && game.input.keyboard && game.input.keyboard.addKeyCapture) {
     game.input.keyboard.addKeyCapture([Phaser.Keyboard.A, Phaser.Keyboard.D]);
@@ -1807,8 +1804,6 @@ showGameOverOverlay: function () {
 
   // Disable gameplay input so A/D can type the name
   this.ignoreGameplayInput = true;
-  if (this.keyA) this.keyA.enabled = false;
-  if (this.keyD) this.keyD.enabled = false;
   if (game.input && game.input.keyboard && game.input.keyboard.removeKeyCapture) {
     game.input.keyboard.removeKeyCapture([Phaser.Keyboard.A, Phaser.Keyboard.D]);
   }
@@ -2138,7 +2133,7 @@ restartGame: function () {
 		this.rightFlipperSprite.angle = this.rightFlipper.angle;
 
 		// CHECKING IF PRESSING THE LEFT OR 'A' KEY OR LEFT TAB
-		if(this.cursors.left.isDown==true || this.keyA.isDown==true || this.buttonAHandler.isDown==true || this.leftTabHandler.isDown==true)
+  		if(this.ignoreGameplayInput!=true && (this.cursors.left.isDown==true || this.keyA.isDown==true || this.buttonAHandler.isDown==true || this.leftTabHandler.isDown==true))
 			{
 			// CHECKING IF THE SOUND IS ENABLED
 			if (GAME_SOUND_ENABLED==true)
@@ -2168,8 +2163,8 @@ restartGame: function () {
 				}
 			}
 
-		// CHECKING IF PRESSING THE RIGHT OR 'D' KEY OR RIGHT TAB
-		if(this.cursors.right.isDown==true || this.keyD.isDown==true || this.buttonBHandler.isDown==true || this.rightTabHandler.isDown==true)
+		 // CHECKING IF PRESSING THE RIGHT OR 'D' KEY OR RIGHT TAB
+  		if(this.ignoreGameplayInput!=true && (this.cursors.right.isDown==true || this.keyD.isDown==true || this.buttonBHandler.isDown==true || this.rightTabHandler.isDown==true))
 			{
 			// CHECKING IF THE SOUND IS ENABLED
 			if (GAME_SOUND_ENABLED==true)
