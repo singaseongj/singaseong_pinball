@@ -679,17 +679,22 @@ Pinball.Game = function(game)
 	this.audioPlayer = null;
 
 	// SCALING THE CANVAS SIZE FOR THE GAME
-	function resizeF()
-		{
-		var scaleX = window.innerWidth / 320;
-		var scaleY = window.innerHeight / 608;
-		var scale = Math.min(scaleX, scaleY);
-		game.scale.scaleMode = Phaser.ScaleManager.USER_SCALE;
-		game.scale.setUserScale(scale, scale);
-		game.scale.pageAlignHorizontally = true;
-		game.scale.pageAlignVertically = true;
-		game.scale.refresh();
-		}
+	// SCALING THE CANVAS SIZE FOR THE GAME
+function resizeF() {
+  var scaleX = window.innerWidth / 320;
+  var scaleY = window.innerHeight / 608;
+  var scale = Math.min(scaleX, scaleY);
+  game.scale.scaleMode = Phaser.ScaleManager.USER_SCALE;
+  game.scale.setUserScale(scale, scale);
+  game.scale.pageAlignHorizontally = true;
+  game.scale.pageAlignVertically = true;
+  game.scale.refresh();
+}
+// prevent accumulating listeners across restarts
+if (!window.__pinballResizeBound) {
+  window.addEventListener("resize", resizeF);
+  window.__pinballResizeBound = true;
+}
 
 	window.addEventListener("resize", resizeF);
 	};
@@ -1521,6 +1526,60 @@ this.ballBody.setFixtureContactCallback(this.gutterFixture2, function(){
 			game.physics.box2d.resume();
 			});
 		},
+	// Temporarily disable gameplay keys while typing a name
+suspendGameplayInput: function () {
+  this.ignoreGameplayInput = true;
+  if (this.keyA) this.keyA.enabled = false;
+  if (this.keyD) this.keyD.enabled = false;
+
+  // Let A/D flow to your onKeyDown / DOM input
+  if (game.input && game.input.keyboard && game.input.keyboard.removeKeyCapture) {
+    game.input.keyboard.removeKeyCapture([Phaser.Keyboard.A, Phaser.Keyboard.D]);
+  }
+},
+
+// Re-enable gameplay keys after name entry is finished
+resumeGameplayInput: function () {
+  this.ignoreGameplayInput = false;
+  if (this.keyA) this.keyA.enabled = true;
+  if (this.keyD) this.keyD.enabled = true;
+
+  if (game.input && game.input.keyboard && game.input.keyboard.addKeyCapture) {
+    game.input.keyboard.addKeyCapture([Phaser.Keyboard.A, Phaser.Keyboard.D]);
+  }
+},
+
+	// Turn on name-entry mode (keyboard callback + mobile input)
+enableNameEntry: function () {
+  this.suspendGameplayInput();
+
+  // Route keyboard to your onKeyDown handler
+  if (game.input && game.input.keyboard) {
+    game.input.keyboard.callbackContext = this;
+    game.input.keyboard.onDownCallback  = this.onKeyDown;
+    game.input.keyboard.onUpCallback    = null;
+    game.input.keyboard.onPressCallback = null;
+  }
+
+  // Show DOM input on mobile (your functions)
+  this.showMobileInput && this.showMobileInput();
+},
+
+// Turn off name-entry mode
+disableNameEntry: function () {
+  // Stop keyboard callbacks
+  if (game.input && game.input.keyboard) {
+    game.input.keyboard.callbackContext = null;
+    game.input.keyboard.onDownCallback  = null;
+    game.input.keyboard.onUpCallback    = null;
+    game.input.keyboard.onPressCallback = null;
+  }
+
+  // Hide mobile input and re-enable gameplay keys
+  this.hideMobileInput && this.hideMobileInput();
+  this.resumeGameplayInput();
+},
+
 clearKeyboardCallbacks: function () {
   if (!game || !game.input || !game.input.keyboard) return;
   var kb = game.input.keyboard;
@@ -1561,6 +1620,29 @@ fixViewportThen: function (callback) {
   }
   // kick it off
   setTimeout(step, 0);
+},
+	hardResetToMenu: function () {
+  // stop gameplay & timers/tweens/sounds
+  try { if (this.clearKeyboardCallbacks) this.clearKeyboardCallbacks(); } catch(e){}
+  if (game.tweens) game.tweens.removeAll();
+  if (game.time && game.time.events) game.time.events.removeAll();
+  if (game.sound) game.sound.stopAll();
+  if (game.physics && game.physics.box2d) game.physics.box2d.pause();
+  if (game.input) game.input.reset(true);
+
+  // viewport sanity (mobile keyboard)
+  window.scrollTo(0, 0);
+  if (game.scale) game.scale.refresh();
+
+  // hard-start Menu (clears the world; keep cache unless you have a Boot/Preload)
+  game.state.start("Pinball.Menu", true, false);
+
+  // after state boots, re-center once more
+  setTimeout(function () {
+    window.scrollTo(0,0);
+    if (game.scale) game.scale.refresh();
+    if (game.camera) game.camera.setPosition(0,0);
+  }, 60);
 },
 	
 	createGameOverOverlay: function() {
@@ -1638,7 +1720,8 @@ backBg.drawRect(0, 0, 200, 40);
 this.gameOverOverlay.add(backBg);          // add first
 backBg.inputEnabled = true;                // then enable input
 if (backBg.input) backBg.input.useHandCursor = true;
-backBg.events.onInputUp.add(this.goToMainMenu, this);  // use the method (not hardcoded state)
+backBg.events.onInputUp.add(this.hardResetToMenu, this);
+backTxt.events.onInputUp.add(this.hardResetToMenu, this);
 
 // Optional: clickable label too
 var backTxt = game.add.bitmapText(160, 385, "ArialBlackWhite", "BACK TO MENU", 18);
@@ -1928,6 +2011,7 @@ try {
   setTimeout(go, 50);
 
   this._savingScore = false;
+this.hardResetToMenu();
 },
 
 	// Call this from your Play Again button
