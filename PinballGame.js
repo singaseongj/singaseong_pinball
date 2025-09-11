@@ -1705,11 +1705,11 @@ if (backTxt.input) backTxt.input.useHandCursor = true;
 // Route both the graphic and label back to the main menu
 backBg.events.onInputUp.add(function(){
   this.disableNameEntry();
-  this.hardResetToMenu();
+  setTimeout(this.hardResetToMenu.bind(this), 50);
 }, this);
 backTxt.events.onInputUp.add(function(){
   this.disableNameEntry();
-  this.hardResetToMenu();
+  setTimeout(this.hardResetToMenu.bind(this), 50);
 }, this);
 		
 
@@ -1971,27 +1971,13 @@ try {
   if (this.gameOverOverlay) this.gameOverOverlay.visible = false;
   if (this.clearKeyboardCallbacks) this.clearKeyboardCallbacks();
 
-  // Return to menu (clean restart)
-  var go = function(){
-    if (game && game.state && game.state.states && game.state.states["Pinball.Menu"]) {
-      game.state.start("Pinball.Menu", true, false);
-    } else if (this.restartGame) {
-      this.restartGame();
-    }
-    // after the new state boots, re-center scale once more
-    setTimeout(function(){
-      window.scrollTo(0,0);
-      if (game && game.scale) game.scale.refresh();
+  var self = this;
+    setTimeout(function () {
+      self.disableNameEntry();
+      self.hardResetToMenu();
+      self._savingScore = false;
     }, 50);
-  }.bind(this);
-
-  // Give the browser a moment to dismiss keyboard/resize viewport
-  setTimeout(go, 50);
-
-  this._savingScore = false;
-this.disableNameEntry();
-this.hardResetToMenu();
-},
+  },
 
 	// Call this from your Play Again button
 restartGame: function () {
