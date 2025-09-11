@@ -1527,7 +1527,7 @@ var backBg = game.add.graphics(60, 365);
 backBg.beginFill(0x2A2A2A, 1);
 backBg.lineStyle(2, 0x6A6A6A, 1);
 backBg.drawRect(0, 0, 200, 40);
-backBg.inputEnabled = false;
+backBg.inputEnabled = true;
 backBg.input.useHandCursor = true;
 backBg.events.onInputUp.add(function(){
 	game.state.start("Pinball.menu");
