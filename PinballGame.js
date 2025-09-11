@@ -2392,42 +2392,23 @@ Pinball.Leaderboard.prototype = {
                         }
                 },
 
-	loadLeaderboard: function()
-		{
-		var xhr = new XMLHttpRequest();
-		xhr.open("GET", "https://script.google.com/macros/s/AKfycbz5pBJY9qeYThLk1GGDAXAibEey9_hazpRi3PbaY3MuU0h2_1tr8OfSrzTa5IUJMj0/exec", true);
-		
-		var self = this;
-		xhr.onreadystatechange = function()
-			{
-			if (xhr.readyState === 4)
-				{
-				if (xhr.status === 200)
-					{
-					try 
-						{
-						var data = JSON.parse(xhr.responseText);
-						self.displayLeaderboard(data.scores);
-						}
-					catch(e)
-						{
-						self.showError("Failed to parse leaderboard data");
-						}
-					}
-				else
-					{
-					self.showError("Failed to load leaderboard");
-					}
-				}
-			};
-
-		xhr.onerror = function()
-			{
-			self.showError("Network error - Check your connection");
-			};
-
-		xhr.send();
-		},
+	loadLeaderboard: function() {
+    var url = this.API_URL || "https://script.google.com/macros/s/AKfycbz5pBJY9qeYThLk1GGDAXAibEey9_hazpRi3PbaY3MuU0h2_1tr8OfSrzTa5IUJMj0/exec";
+    var self = this;
+    fetch(url)
+      .then(function (response) {
+        if (!response.ok) {
+          throw new Error("Failed to load leaderboard");
+        }
+        return response.json();
+      })
+      .then(function (data) {
+        self.displayLeaderboard(data.scores);
+      })
+      .catch(function () {
+        self.showError("Failed to load leaderboard");
+      });
+  },
 
 	displayLeaderboard: function(scores)
 		{
