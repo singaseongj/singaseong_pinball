@@ -1582,7 +1582,7 @@ Pinball.Game.prototype = {
                 this.nameInputSubmit.fixedToCamera = true;
                 this.nameInputSubmit.inputEnabled = true;
                 this.nameInputSubmit.input.useHandCursor = true;
-                this.nameInputSubmit.events.onInputUp.add(this.submitScore, this);
+                this.nameInputSubmit.events.onInputUp.add(this.saveScore, this);
                 this.nameInputOverlay.add(this.nameInputSubmit);
 
                 // BACK TO MENU BUTTON
@@ -1662,81 +1662,44 @@ Pinball.Game.prototype = {
 			this.nameInputField.setText(this.playerName);
 			}
 		else if (event.keyCode === 13) // ENTER
-			{
-			this.submitScore();
-			}
-		else if (event.keyCode >= 32 && event.keyCode <= 126 && this.playerName.length < 12)
+                        {
+                        this.saveScore();
+                        }
+                else if (event.keyCode >= 32 && event.keyCode <= 126 && this.playerName.length < 12)
 			{
 			this.playerName += String.fromCharCode(event.keyCode);
 			this.nameInputField.setText(this.playerName);
 			}
 		},
 
-	submitScore: function()
-                {
-                if (this.playerName.trim().length === 0)
-                        {
-                        // SHOW ERROR OR JUST RETURN
-                        return;
-                        }
+	saveScore: function() {
+    var name = this.playerName.trim();
+    if (name.length > 0) {
+      var newScore = {
+        name: name,
+        score: this.scoreValue,
+        time: parseFloat(game.time.totalElapsedSeconds()),
+        date: new Date().toISOString()
+      };
 
-                var scoreData = {
-                        name: this.playerName.trim(),
-                        score: this.scoreValue
-                };
+      fetch(this.API_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newScore)
+      }).then(function() {
+        var localScores = JSON.parse(localStorage.getItem("pinballLeaderboard") || "[]");
+        localScores.push(newScore);
+        localScores.sort(function(a, b){ return b.score - a.score; });
+        localStorage.setItem("pinballLeaderboard", JSON.stringify(localScores.slice(0, 10)));
+      }).catch(function(error) {
+        console.error("Failed to save score:", error);
+      });
 
-                // SUBMIT TO LEADERBOARD
-                this.postToLeaderboard(scoreData);
-                this.hideNameInput();
-
-                // SHOW LEADERBOARD THEN RETURN TO MENU
-                game.state.start("Pinball.Leaderboard", Phaser.Plugin.StateTransition.Out.SlideLeft, false, true);
-                },
-
-	postToLeaderboard: function(scoreData)
-		{
-		var xhr = new XMLHttpRequest();
-		xhr.open("POST", this.API_URL, true);
-		xhr.setRequestHeader("Content-Type", "application/json");
-		
-		var self = this;
-		xhr.onreadystatechange = function()
-			{
-			if (xhr.readyState === 4)
-				{
-				if (xhr.status === 200)
-					{
-					console.log("Score submitted successfully!");
-					// UPDATE LOCAL HIGH SCORE
-					if (self.scoreValue > parseInt(self.getHighscore()))
-						{
-						self.setHighscore(self.scoreValue);
-						}
-					}
-				else
-					{
-					console.error("Failed to submit score:", xhr.statusText);
-					// FALLBACK TO LOCAL HIGH SCORE UPDATE
-					if (self.scoreValue > parseInt(self.getHighscore()))
-						{
-						self.setHighscore(self.scoreValue);
-						}
-					}
-				}
-			};
-
-		xhr.onerror = function()
-			{
-			console.error("Network error while submitting score");
-			// FALLBACK TO LOCAL HIGH SCORE UPDATE
-			if (self.scoreValue > parseInt(self.getHighscore()))
-				{
-				self.setHighscore(self.scoreValue);
-				}
-			};
-
-		xhr.send(JSON.stringify(scoreData));
-		},
+      this.hideNameInput();
+      this.restartGame();
+    }
+  },
 
 	restartGame: function()
 		{
