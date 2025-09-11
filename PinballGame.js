@@ -2331,10 +2331,54 @@ restartGame: function () {
 		},
 
 	getCurrentTime: function()
-		{
-		return window.performance && window.performance.now && window.performance.timing && window.performance.timing.navigationStart ? window.performance.now() + window.performance.timing.navigationStart : Date.now();
-		}
-	};
+                {
+                return window.performance && window.performance.now && window.performance.timing && window.performance.timing.navigationStart ? window.performance.now() + window.performance.timing.navigationStart : Date.now();
+                }
+        };
+
+// Fetch leaderboard from API or localStorage
+function fetchLeaderboard() {
+  return new Promise(function (resolve, reject) {
+    var apiUrl = "https://script.google.com/macros/s/AKfycbz5pBJY9qeYThLk1GGDAXAibEey9_hazpRi3PbaY3MuU0h2_1tr8OfSrzTa5IUJMj0/exec";
+    var localScores = [];
+
+    try {
+      localScores = JSON.parse(localStorage.getItem("pinballLeaderboard") || "[]");
+    } catch (e) {
+    }
+
+    function finalizeScores(remoteScores) {
+      var allScores = remoteScores.concat(localScores);
+      allScores.sort(function (a, b) {
+        return (parseInt(b.score, 10) || 0) - (parseInt(a.score, 10) || 0);
+      });
+      window.leaderboard = allScores.slice(0, 10);
+      resolve(window.leaderboard);
+    }
+
+    if (window.fetch) {
+      fetch(apiUrl)
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          var remoteScores = Array.isArray(data.scores) ? data.scores : [];
+          finalizeScores(remoteScores);
+        })
+        .catch(function () {
+          if (localScores.length > 0) {
+            finalizeScores([]);
+          } else {
+            reject();
+          }
+        });
+    } else {
+      if (localScores.length > 0) {
+        finalizeScores([]);
+      } else {
+        reject();
+      }
+    }
+  });
+},
 
 // ADD LEADERBOARD STATE
 Pinball.Leaderboard = function(game) {};
@@ -2390,12 +2434,8 @@ Pinball.Leaderboard.prototype = {
 
 		loadLeaderboard: function() {
     var self = this;
-    fetchLeaderboard().then(function() {
-      var scores = Array.isArray(leaderboard) ? leaderboard.slice() : [];
-      scores.sort(function(a, b) {
-        return (parseInt(b.score, 10) || 0) - (parseInt(a.score, 10) || 0);
-      });
-      self.displayLeaderboard(scores.slice(0, 10));
+    fetchLeaderboard().then(function(scores) {
+      self.displayLeaderboard(scores);
     }).catch(function() {
       self.showError("Failed to load leaderboard");
     });
