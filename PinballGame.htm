@@ -36,12 +36,9 @@
             "keydown",
             (e) => {
               if (e.code === "KeyA" || e.code === "KeyD") {
-                if (e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
-                  e.stopPropagation();
-                }
+                e.stopPropagation();
               }
-            },
-            true
+            }
           );
         </script>
         <script src="PinballGame.js"></script>
