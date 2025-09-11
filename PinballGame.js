@@ -1684,7 +1684,7 @@ fixViewportThen: function (callback) {
   this.gameOverOverlay.add(this.nameInputField);
 
   // --- Save button ---
-  var saveBg = game.add.graphics(60, 265);
+  var saveBg = game.add.graphics(60, 275);
   saveBg.beginFill(0x022C5C, 1);
   saveBg.lineStyle(2, 0x0046A9, 1);
   saveBg.drawRect(0, 0, 200, 40);
@@ -1693,25 +1693,16 @@ fixViewportThen: function (callback) {
   saveBg.events.onInputUp.add(this.saveScore, this);
   this.gameOverOverlay.add(saveBg);
 
-  this.nameInputSubmit = game.add.bitmapText(160, 285, "ArialBlackWhite", "SAVE", 18);
+  this.nameInputSubmit = game.add.bitmapText(160, 295, "ArialBlackWhite", "SAVE", 18);
   this.nameInputSubmit.anchor.set(0.5);
   this.nameInputSubmit.inputEnabled = true;
   this.nameInputSubmit.input.useHandCursor = true;
   this.nameInputSubmit.events.onInputUp.add(this.saveScore, this);
   this.gameOverOverlay.add(this.nameInputSubmit);
 
-  // --- Play Again button ---
-  var playBg = game.add.graphics(60, 315);
-  playBg.beginFill(0x383838, 1);
-  playBg.lineStyle(2, 0x707070, 1);
-  playBg.drawRect(0, 0, 200, 40);
-  playBg.inputEnabled = true;
-  playBg.input.useHandCursor = true;
-  playBg.events.onInputUp.add(this.restartGame, this);
-  this.gameOverOverlay.add(playBg);
 
 // --- Back to Menu button (below Play Again) ---
-var backBg = game.add.graphics(60, 365);
+var backBg = game.add.graphics(60, 315);
 backBg.beginFill(0x2A2A2A, 1);
 backBg.lineStyle(2, 0x6A6A6A, 1);
 backBg.drawRect(0, 0, 200, 40);
@@ -1720,7 +1711,7 @@ backBg.inputEnabled = true;                // then enable input
 if (backBg.input) backBg.input.useHandCursor = true;
 
 // Optional: clickable label too
-var backTxt = game.add.bitmapText(160, 385, "ArialBlackWhite", "BACK TO MENU", 18);
+var backTxt = game.add.bitmapText(160, 330, "ArialBlackWhite", "BACK TO MENU", 18);
 backTxt.anchor.set(0.5);
 this.gameOverOverlay.add(backTxt);         // add first
 backTxt.inputEnabled = true;
@@ -1736,24 +1727,6 @@ backTxt.events.onInputUp.add(function(){
   this.hardResetToMenu();
 }, this);
 		
-
-// --- Play Again (bigger hit target + label) ---
-var playBg = game.add.graphics(60, 315);
-playBg.beginFill(0x383838, 1);
-playBg.lineStyle(2, 0x707070, 1);
-playBg.drawRect(0, 0, 200, 40);
-this.gameOverOverlay.add(playBg);
-playBg.inputEnabled = true;
-if (playBg.input) playBg.input.useHandCursor = true;
-playBg.events.onInputUp.add(this.restartGame, this);
-
-var playTxt = game.add.bitmapText(160, 335, "ArialBlackWhite", "PLAY AGAIN", 18);
-playTxt.anchor.set(0.5);
-this.gameOverOverlay.add(playTxt);
-playTxt.inputEnabled = true;
-if (playTxt.input) playTxt.input.useHandCursor = true;
-playTxt.events.onInputUp.add(this.restartGame, this);
-
 
   
 
