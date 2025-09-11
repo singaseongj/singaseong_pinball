@@ -795,6 +795,7 @@ Pinball.Game.prototype = {
 		this.playerName = "";
 
 		this.leaderboardData = [];
+        this.API_URL = GOOGLE_SCRIPT_URL;
 
 		this.isMobileDevice = null;
 
@@ -1511,6 +1512,10 @@ this.ballBody.setFixtureContactCallback(this.gutterFixture2, function(){
 
 		// GETTING THE CURSOR KEY INPUTS
 		this.cursors = game.input.keyboard.createCursorKeys();
+
+		// REGISTERING THE 'A' AND 'D' KEYS
+		this.keyA = game.input.keyboard.addKey(Phaser.Keyboard.A);
+		this.keyD = game.input.keyboard.addKey(Phaser.Keyboard.D);
 
 		// PAUSING THE BOX2D PHYSICS
 		game.physics.box2d.pause();
@@ -2390,24 +2395,15 @@ Pinball.Leaderboard.prototype = {
 
 		loadLeaderboard: function() {
     var self = this;
-    var url = this.API_URL || Pinball.API_URL;
-    fetch(url, { mode: "cors", redirect: "follow", cache: "no-cache" })
-      .then(function(response) {
-        if (!response.ok) {
-          throw new Error("Failed to load leaderboard");
-        }
-        return response.json();
-      })
-      .then(function(data) {
-        var scores = Array.isArray(data.scores) ? data.scores.slice() : [];
-        scores.sort(function(a, b) {
-          return (parseInt(b.score, 10) || 0) - (parseInt(a.score, 10) || 0);
-        });
-        self.displayLeaderboard(scores.slice(0, 10));
-      })
-      .catch(function() {
-        self.showError("Failed to load leaderboard");
+    fetchLeaderboard().then(function() {
+      var scores = Array.isArray(leaderboard) ? leaderboard.slice() : [];
+      scores.sort(function(a, b) {
+        return (parseInt(b.score, 10) || 0) - (parseInt(a.score, 10) || 0);
       });
+      self.displayLeaderboard(scores.slice(0, 10));
+    }).catch(function() {
+      self.showError("Failed to load leaderboard");
+    });
   },
 
 	displayLeaderboard: function(scores)
