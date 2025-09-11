@@ -1604,29 +1604,10 @@ fixViewportThen: function (callback) {
   // kick it off
   setTimeout(step, 0);
 },
-	hardResetToMenu: function () {
-  // stop gameplay & timers/tweens/sounds
-  try { if (this.clearKeyboardCallbacks) this.clearKeyboardCallbacks(); } catch(e){}
-  if (game.tweens) game.tweens.removeAll();
-  if (game.time && game.time.events) game.time.events.removeAll();
-  if (game.sound) game.sound.stopAll();
-  if (game.physics && game.physics.box2d) game.physics.box2d.pause();
-  if (game.input) game.input.reset(true);
-
-  // viewport sanity (mobile keyboard)
-  window.scrollTo(0, 0);
-  if (game.scale) game.scale.refresh();
-
-  // hard-start Menu (clears the world; keep cache unless you have a Boot/Preload)
-  game.state.start("Pinball.Menu", true, false);
-
-  // after state boots, re-center once more
-  setTimeout(function () {
-    window.scrollTo(0,0);
-    if (game.scale) game.scale.refresh();
-    if (game.camera) game.camera.setPosition(0,0);
-  }, 60);
-},
+	 hardResetToMenu: function () {
+  // Reload the page to ensure the game returns to its initial state
+  window.location.reload();
+	 },
 	
 	createGameOverOverlay: function() {
   // Group fixed to camera
