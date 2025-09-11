@@ -1446,7 +1446,15 @@ this.ballBody.setFixtureContactCallback(this.gutterFixture2, function(){
 			game.physics.box2d.resume();
 			});
 		},
-
+clearKeyboardCallbacks: function () {
+  if (!game || !game.input || !game.input.keyboard) return;
+  var kb = game.input.keyboard;
+  kb.callbackContext = null;
+  kb.onDownCallback  = null;
+  kb.onUpCallback    = null;
+  kb.onPressCallback = null;
+},
+	
 	createGameOverOverlay: function() {
   // Group fixed to camera
   this.gameOverOverlay = game.add.group();
@@ -1542,22 +1550,29 @@ this.ballBody.setFixtureContactCallback(this.gutterFixture2, function(){
 showGameOverOverlay: function () {
   if (this.gameOverActive) return;
   this.gameOverActive = true;
+
   this.gameOverScore.setText("SCORE: " + this.scoreValue);
-  this.playerName = ""; this.nameInputField.setText("");
+  this.playerName = "";
+  this.nameInputField.setText("");
+
   this.gameOverOverlay.visible = true;
   game.world.bringToTop(this.gameOverOverlay);
+
   game.physics.box2d.pause();
 
-  game.input.keyboard.addCallbacks(this, this.onKeyDown, null, null);
+  // enable typing
+  game.input.keyboard.callbackContext = this;
+  game.input.keyboard.onDownCallback  = this.onKeyDown;
+
   if (this.renderLeaderboard) this.renderLeaderboard();
-  this.showMobileInput();   // <— show the real input on mobile
+  if (this.showMobileInput) this.showMobileInput();
 },
 
 hideGameOverOverlay: function () {
   this.gameOverActive = false;
-  this.gameOverOverlay.visible = false;
-  game.input.keyboard.removeCallbacks();
-  this.hideMobileInput();   // <—
+  if (this.gameOverOverlay) this.gameOverOverlay.visible = false;
+  if (this.hideMobileInput) this.hideMobileInput();   // if you added mobile <input>
+  this.clearKeyboardCallbacks();                      // <-- replace removeCallbacks
 },
 
 // We no longer need a separate "name input overlay"
@@ -1691,21 +1706,27 @@ saveScore: function () {
   }
 
   // --- Remote save (best-effort) ---
-  try {
-    if (typeof navigator !== "undefined" && navigator.sendBeacon) {
-      var blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
-      navigator.sendBeacon(this.API_URL, blob);
-    } else if (window.fetch) {
-      fetch(this.API_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      }).catch(function (err) { console.error("Save to API failed:", err); });
-    }
-  } catch (e) {
-    console.error("Remote save error:", e);
+  // --- Remote save (best-effort; avoids preflight) ---
+try {
+  var payloadStr = JSON.stringify(payload);
+
+  if (typeof navigator !== "undefined" && navigator.sendBeacon) {
+    // Use a simple content-type so no CORS preflight is attempted
+    var blob = new Blob([payloadStr], { type: "text/plain;charset=UTF-8" });
+    navigator.sendBeacon(this.API_URL, blob);
+  } else if (window.fetch) {
+    // Simple request: no-cors + text/plain (no preflight)
+    fetch(this.API_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain;charset=UTF-8" },
+      body: payloadStr
+    }).catch(function (err) { console.error("Save to API failed:", err); });
   }
+} catch (e) {
+  console.error("Remote save error:", e);
+}
+
 
   // --- HUD high score (if your getter/labels exist) ---
   try {
