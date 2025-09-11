@@ -1522,6 +1522,24 @@ clearKeyboardCallbacks: function () {
   playBg.events.onInputUp.add(this.restartGame, this);
   this.gameOverOverlay.add(playBg);
 
+// --- Back to Menu button (below Play Again) ---
+var backBg = game.add.graphics(60, 365);
+backBg.beginFill(0x2A2A2A, 1);
+backBg.lineStyle(2, 0x6A6A6A, 1);
+backBg.drawRect(0, 0, 200, 40);
+backBg.inputEnabled = true;
+backBg.input.useHandCursor = true;
+backBg.events.onInputUp.add(this.goToMainMenu, this);
+this.gameOverOverlay.add(backBg);
+
+var backTxt = game.add.bitmapText(160, 385, "ArialBlackWhite", "BACK TO MENU", 18);
+backTxt.anchor.set(0.5);
+backTxt.inputEnabled = true;
+backTxt.input.useHandCursor = true;
+backTxt.events.onInputUp.add(this.goToMainMenu, this);
+this.gameOverOverlay.add(backTxt);
+
+
   var playTxt = game.add.bitmapText(160, 335, "ArialBlackWhite", "PLAY AGAIN", 18);
   playTxt.anchor.set(0.5);
   playTxt.inputEnabled = true;
@@ -1658,8 +1676,15 @@ showMobileInput: function () {
 
 hideMobileInput: function () {
   if (!this._domInput) return;
+  try { this._domInput.blur(); } catch(e){}
   this._domInput.style.display = 'none';
-  this._domInput.blur();
+
+  // Fix page scroll/zoom that mobile keyboards often cause
+  setTimeout(function () {
+    window.scrollTo(0, 0);
+    if (game && game.scale) game.scale.refresh();
+    if (typeof resizeF === 'function') resizeF(); // your own resizer
+  }, 50);
 },
 
 // Persist + update leaderboard (uses your existing API + localStorage)
@@ -1740,16 +1765,28 @@ try {
   // keep DOM <input> in sync (mobile), then leave screen
   if (this._domInput) this._domInput.value = name;
   if (this.hideMobileInput) this.hideMobileInput();
-  this.hideGameOverOverlay();
+  this.gameOverActive = false;
+  if (this.gameOverOverlay) this.gameOverOverlay.visible = false;
+  if (this.clearKeyboardCallbacks) this.clearKeyboardCallbacks();
 
-  // Go to main menu if available; otherwise soft-reset the game
-  if (game && game.state && game.state.states && game.state.states["Pinball.Menu"]) {
-    game.state.start("Pinball.Menu");
-  } else if (this.restartGame) {
-    this.restartGame();
-  }
+  // Return to menu (clean restart)
+  var go = function(){
+    if (game && game.state && game.state.states && game.state.states["Pinball.Menu"]) {
+      game.state.start("Pinball.Menu", true, false);
+    } else if (this.restartGame) {
+      this.restartGame();
+    }
+    // after the new state boots, re-center scale once more
+    setTimeout(function(){
+      window.scrollTo(0,0);
+      if (game && game.scale) game.scale.refresh();
+    }, 50);
+  }.bind(this);
 
-  this._savingScore = false; // safe even if we changed state
+  // Give the browser a moment to dismiss keyboard/resize viewport
+  setTimeout(go, 50);
+
+  this._savingScore = false;
 },
 
 	// Call this from your Play Again button
