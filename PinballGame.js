@@ -1729,9 +1729,14 @@ backTxt.inputEnabled = true;
 if (backTxt.input) backTxt.input.useHandCursor = true;
 
 // Route both the graphic and label back to the main menu
-backBg.events.onInputUp.add(this.goToMainMenu, this);
-backTxt.events.onInputUp.add(this.goToMainMenu, this);
-backTxt.events.onInputUp.add(this.goToMainMenu, this);
+backBg.events.onInputUp.add(function(){
+  this.disableNameEntry();
+  this.hardResetToMenu();
+}, this);
+backTxt.events.onInputUp.add(function(){
+  this.disableNameEntry();
+  this.hardResetToMenu();
+}, this);
 		
 
 // --- Play Again (bigger hit target + label) ---
@@ -1796,21 +1801,39 @@ showGameOverOverlay: function () {
   if (this.gameOverActive) return;
   this.gameOverActive = true;
 
-  this.gameOverScore.setText("SCORE: " + this.scoreValue);
+  // Pause gameplay
+  if (game.physics && game.physics.box2d) game.physics.box2d.pause();
+
+  // Disable gameplay input so A/D can type the name
+  this.ignoreGameplayInput = true;
+  if (this.keyA) this.keyA.enabled = false;
+  if (this.keyD) this.keyD.enabled = false;
+  if (game.input && game.input.keyboard && game.input.keyboard.removeKeyCapture) {
+    game.input.keyboard.removeKeyCapture([Phaser.Keyboard.A, Phaser.Keyboard.D]);
+  }
+
+  // UI text
+  if (this.gameOverScore) this.gameOverScore.setText("SCORE: " + (this.scoreValue | 0));
   this.playerName = "";
-  this.nameInputField.setText("");
+  if (this.nameInputField) this.nameInputField.setText("");
 
-  this.gameOverOverlay.visible = true;
-  game.world.bringToTop(this.gameOverOverlay);
+  // Show overlay on top
+  if (this.gameOverOverlay) {
+    this.gameOverOverlay.visible = true;
+    game.world.bringToTop(this.gameOverOverlay);
+  }
 
-  game.physics.box2d.pause();
+  // Route keyboard to your onKeyDown handler (no up/press handlers)
+  if (game.input && game.input.keyboard) {
+    game.input.keyboard.callbackContext = this;
+    game.input.keyboard.onDownCallback  = this.onKeyDown;
+    game.input.keyboard.onUpCallback    = null;
+    game.input.keyboard.onPressCallback = null;
+  }
 
-  // enable typing
-  game.input.keyboard.callbackContext = this;
-  game.input.keyboard.onDownCallback  = this.onKeyDown;
-
+  // Optional: refresh leaderboard + show mobile keyboard
   if (this.renderLeaderboard) this.renderLeaderboard();
-  if (this.showMobileInput) this.showMobileInput();
+  if (this.showMobileInput)   this.showMobileInput();
 },
 
 hideGameOverOverlay: function () {
@@ -2014,6 +2037,7 @@ try {
   setTimeout(go, 50);
 
   this._savingScore = false;
+this.disableNameEntry();
 this.hardResetToMenu();
 },
 
