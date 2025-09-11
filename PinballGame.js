@@ -233,14 +233,14 @@ Pinball.Menu.prototype = {
   ui.add(this.menuMainAppIcon);
 
   // Title (shadow)
-  this.menuMainAppTitleShadow = game.add.bitmapText(0, 207, "ArialBlackWhiteBig", "Singaseong\n      Pinball", 35);
+  this.menuMainAppTitleShadow = game.add.bitmapText(0, 207, "ArialBlackWhiteBig", "Singaseong\n    Pinball", 35);
   this.menuMainAppTitleShadow.height = 62;
   this.menuMainAppTitleShadow.position.x = game.width / 2 - this.menuMainAppTitleShadow.width / 2 + 2;
   this.menuMainAppTitleShadow.tint = 0x000000;
   ui.add(this.menuMainAppTitleShadow);
 
   // Title
-  this.menuMainAppTitle = game.add.bitmapText(0, 205, "ArialBlackWhiteBig", "Singaseong\nPinball", 35);
+  this.menuMainAppTitle = game.add.bitmapText(0, 205, "ArialBlackWhiteBig", "Singaseong\n    Pinball", 35);
   this.menuMainAppTitle.height = 60;
   this.menuMainAppTitle.position.x = game.width / 2 - this.menuMainAppTitle.width / 2;
   ui.add(this.menuMainAppTitle);
