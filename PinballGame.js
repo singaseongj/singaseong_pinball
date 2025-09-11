@@ -633,10 +633,8 @@ Pinball.Game = function(game)
 	this.largeCirclesHitList = [];
 	this.largeCirclesGlowList = [];
 
-	this.keyA = null;
-  	this.keyD = null;
-  	this.ignoreGameplayInput = false;
-  	this.buttonANormal = null;
+	 this.ignoreGameplayInput = false;
+     this.buttonANormal = null;
   	this.buttonAPressed = null;
   	this.buttonAHandler = null;
   	this.buttonBNormal = null;
@@ -760,11 +758,9 @@ Pinball.Game.prototype = {
 		this.largeCirclesHitList = [];
 		this.largeCirclesGlowList = [];
 
-		this.keyA = null;
-		this.keyD = null;
 		this.buttonANormal = null;
-		this.buttonAPressed = null;
-		this.buttonAHandler = null;
+        this.buttonAPressed = null;
+        this.buttonAHandler = null;
 		this.buttonBNormal = null;
 		this.buttonBPressed = null;
 		this.buttonBHandler = null;
@@ -1514,12 +1510,8 @@ this.ballBody.setFixtureContactCallback(this.gutterFixture2, function(){
 		// GETTING THE CURSOR KEY INPUTS
 		this.cursors = game.input.keyboard.createCursorKeys();
 
-		// REGISTERING THE 'A' AND 'D' KEYS
-		this.keyA = game.input.keyboard.addKey(Phaser.Keyboard.A);
-		this.keyD = game.input.keyboard.addKey(Phaser.Keyboard.D);
-
 		// PAUSING THE BOX2D PHYSICS
-		game.physics.box2d.pause();
+                game.physics.box2d.pause();
 
 		// WAITING 500 MS
 		game.time.events.add(500, function()
@@ -1532,19 +1524,12 @@ this.ballBody.setFixtureContactCallback(this.gutterFixture2, function(){
 suspendGameplayInput: function () {
   this.ignoreGameplayInput = true;
 
-  // Let A/D flow to your onKeyDown / DOM input
-  if (game.input && game.input.keyboard && game.input.keyboard.removeKeyCapture) {
-    game.input.keyboard.removeKeyCapture([Phaser.Keyboard.A, Phaser.Keyboard.D]);
-  }
 },
 
 // Re-enable gameplay keys after name entry is finished
 resumeGameplayInput: function () {
   this.ignoreGameplayInput = false;
 
-  if (game.input && game.input.keyboard && game.input.keyboard.addKeyCapture) {
-    game.input.keyboard.addKeyCapture([Phaser.Keyboard.A, Phaser.Keyboard.D]);
-  }
 },
 
 	// Turn on name-entry mode (keyboard callback + mobile input)
@@ -1775,11 +1760,9 @@ showGameOverOverlay: function () {
   // Pause gameplay
   if (game.physics && game.physics.box2d) game.physics.box2d.pause();
 
-  // Disable gameplay input so A/D can type the name
+  // Disable gameplay input for name entry
   this.ignoreGameplayInput = true;
-  if (game.input && game.input.keyboard && game.input.keyboard.removeKeyCapture) {
-    game.input.keyboard.removeKeyCapture([Phaser.Keyboard.A, Phaser.Keyboard.D]);
-  }
+
 
   // UI text
   if (this.gameOverScore) this.gameOverScore.setText("SCORE: " + (this.scoreValue | 0));
@@ -2105,8 +2088,8 @@ restartGame: function () {
 		// THE RIGHT FLIPPER SPRITE MUST ALWAYS FOLLOW THE BOX2D RIGHT FLIPPER
 		this.rightFlipperSprite.angle = this.rightFlipper.angle;
 
-		// CHECKING IF PRESSING THE LEFT OR 'A' KEY OR LEFT TAB
-  		if(this.ignoreGameplayInput!=true && (this.cursors.left.isDown==true || this.keyA.isDown==true || this.buttonAHandler.isDown==true || this.leftTabHandler.isDown==true))
+		// CHECKING IF PRESSING THE LEFT KEY OR LEFT TAB
+                if(this.ignoreGameplayInput!=true && (this.cursors.left.isDown==true || this.buttonAHandler.isDown==true || this.leftTabHandler.isDown==true))
 			{
 			// CHECKING IF THE SOUND IS ENABLED
 			if (GAME_SOUND_ENABLED==true)
@@ -2136,8 +2119,8 @@ restartGame: function () {
 				}
 			}
 
-		 // CHECKING IF PRESSING THE RIGHT OR 'D' KEY OR RIGHT TAB
-  		if(this.ignoreGameplayInput!=true && (this.cursors.right.isDown==true || this.keyD.isDown==true || this.buttonBHandler.isDown==true || this.rightTabHandler.isDown==true))
+		  // CHECKING IF PRESSING THE RIGHT KEY OR RIGHT TAB
+                if(this.ignoreGameplayInput!=true && (this.cursors.right.isDown==true || this.buttonBHandler.isDown==true || this.rightTabHandler.isDown==true))
 			{
 			// CHECKING IF THE SOUND IS ENABLED
 			if (GAME_SOUND_ENABLED==true)
