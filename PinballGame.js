@@ -2393,23 +2393,23 @@ Pinball.Leaderboard.prototype = {
                 },
 
 		loadLeaderboard: function() {
-    var url = this.API_URL || "https://script.google.com/macros/s/AKfycbz5pBJY9qeYThLk1GGDAXAibEey9_hazpRi3PbaY3MuU0h2_1tr8OfSrzTa5IUJMj0/exec";
     var self = this;
-    fetch(url, { mode: "cors" })
-      .then(function (response) {
+    var url = this.API_URL || Pinball.API_URL;
+    fetch(url, { mode: "cors", redirect: "follow", cache: "no-cache" })
+      .then(function(response) {
         if (!response.ok) {
           throw new Error("Failed to load leaderboard");
         }
         return response.json();
       })
-      .then(function (data) {
+      .then(function(data) {
         var scores = Array.isArray(data.scores) ? data.scores.slice() : [];
         scores.sort(function(a, b) {
-          return (b.score || 0) - (a.score || 0);
+          return (parseInt(b.score, 10) || 0) - (parseInt(a.score, 10) || 0);
         });
         self.displayLeaderboard(scores.slice(0, 10));
       })
-      .catch(function () {
+      .catch(function() {
         self.showError("Failed to load leaderboard");
       });
   },
