@@ -1980,9 +1980,6 @@ restartGame: function () {
 	playAgain: function () {
   this.disableNameEntry();
   this.updateScore(0);
-  this.scoreValue = 0;
-  this.scoreLabel.setText("0");
-  this.scoreLabelShadow.setText("0");
   this.restartGame();
   if (game && game.canvas) {
     game.canvas.focus();
