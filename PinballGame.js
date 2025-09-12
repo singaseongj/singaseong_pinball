@@ -1982,15 +1982,17 @@ playAgain: function () {
 
   if (game.physics && game.physics.box2d) {
     game.physics.box2d.resume();
-  }
 
-  // Restart once more shortly after resuming physics to prevent the
-  // Play Again button from requiring a second click.
-  if (game.time && game.time.events) {
-    game.time.events.add(30, this.restartGame, this);
-  }
-  if (game.physics && game.physics.box2d) {
-    game.physics.box2d.resume();
+    // Restart and resume again shortly after to keep physics active
+    if (game.time && game.time.events) {
+      game.time.events.add(10, function () {
+        this.restartGame();
+        game.physics.box2d.resume();
+      }, this);
+    }
+  } else if (game.time && game.time.events) {
+    // Fallback: still restart once more without physics
+    game.time.events.add(10, this.restartGame, this);
   }
 },
 
