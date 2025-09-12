@@ -1979,7 +1979,11 @@ restartGame: function () {
 	
 	
 	playAgain: function () {
+  this.disableNameEntry();
   this.restartGame();
+  if (game && game.canvas) {
+    game.canvas.focus();
+  }
 },
 
         goToMainMenu: function () {
