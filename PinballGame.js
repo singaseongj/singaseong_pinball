@@ -2253,38 +2253,24 @@ restartGame: function () {
         };
 
 // Fetch leaderboard from Google Sheets API
-function fetchLeaderboard() {
-  return new Promise(function (resolve, reject) {
-    var apiUrl = "https://script.google.com/macros/s/AKfycbz5pBJY9qeYThLk1GGDAXAibEey9_hazpRi3PbaY3MuU0h2_1tr8OfSrzTa5IUJMj0/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz5pBJY9qeYThLk1GGDAXAibEey9_hazpRi3PbaY3MuU0h2_1tr8OfSrzTa5IUJMj0/exec";
+let leaderboard = [];
 
-    if (window.fetch) {
-      fetch(apiUrl)
-        .then(function (res) { return res.json(); })
-        .then(function (data) {
-          var remoteScores = Array.isArray(data.scores) ? data.scores : [];
-          remoteScores = remoteScores
-            .map(function (row) {
-              if (Array.isArray(row)) {
-                return { name: row[0], score: row[1], date: row[2] };
-              }
-              return row;
-            })
-            .filter(function (entry) {
-              return entry && entry.name && entry.score !== undefined;
-            });
-          remoteScores.sort(function (a, b) {
-            return (parseInt(b.score, 10) || 0) - (parseInt(a.score, 10) || 0);
-          });
-          window.leaderboard = remoteScores.slice(0, 10);
-          resolve(window.leaderboard);
-        })
-        .catch(function () {
-          reject();
-        });
-    } else {
-      reject();
-    }
-  });
+async function fetchLeaderboard() {
+  try {
+    const response = await fetch(GOOGLE_SCRIPT_URL);
+    const data = await response.json();
+    leaderboard = data.scores || [];
+    window.leaderboard = leaderboard;
+    updateLeaderboard();
+    return leaderboard;
+  } catch (error) {
+    console.error('Failed to fetch leaderboard:', error);
+    leaderboard = JSON.parse(localStorage.getItem('Leaderboard') || '[]');
+    window.leaderboard = leaderboard;
+    updateLeaderboard();
+    return leaderboard;
+  }
 }
 
 function updateLeaderboard() {
