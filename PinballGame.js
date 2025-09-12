@@ -1979,10 +1979,23 @@ playAgain: function () {
   }, this);
 
   if (game.physics && game.physics.box2d) {
-  game.time.events.add(120, function () {
     game.physics.box2d.resume();
-  }, this);
-}
+
+    // Restart and resume again shortly after to keep physics active
+    if (game.time && game.time.events) {
+      game.time.events.add(30, function () {
+        this.restartGame();
+        this.disableNameEntry();
+        game.physics.box2d.resume();
+      }, this);
+    }
+  } else if (game.time && game.time.events) {
+    // Fallback: still restart once more without physics
+    game.time.events.add(30, function () {
+      this.restartGame();
+      this.disableNameEntry();
+    }, this);
+  }
 },
 
         goToMainMenu: function () {
