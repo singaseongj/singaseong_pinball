@@ -1960,10 +1960,7 @@ restartGame: function () {
   this.launcherIsMoving = false; this.launcherGoingUp = false;
 
 // 7) Re-enable sensors on the next tick
-  game.time.events.add(60, function(){
-    if (this.gutterFixture1) this.gutterFixture1.SetSensor(true);
-    if (this.gutterFixture2) this.gutterFixture2.SetSensor(true);
-  }, this);
+  
  
 },
 
@@ -1972,13 +1969,16 @@ restartGame: function () {
 	
 playAgain: function () {
           this.updateScore(0);
-          
           this.restartGame();
           this.disableNameEntry();
           if (game && game.canvas) {
             game.canvas.focus();
-          }
-		  if (game.physics && game.physics.box2d) {
+          }		  
+		  game.time.events.add(60, function(){
+    if (this.gutterFixture1) this.gutterFixture1.SetSensor(true);
+    if (this.gutterFixture2) this.gutterFixture2.SetSensor(true);
+  }, this);
+	if (game.physics && game.physics.box2d) {
             game.physics.box2d.resume();
           }
         },
