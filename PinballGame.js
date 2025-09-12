@@ -1979,7 +1979,6 @@ restartGame: function () {
 	
 	playAgain: function () {
   this.restartGame();
-  this.updateScore(0);
   if (game && game.canvas) {
     game.canvas.focus();
   }
