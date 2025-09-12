@@ -1968,20 +1968,28 @@ restartGame: function () {
 	
 	
 playAgain: function () {
-          this.updateScore(0);
-          this.restartGame();
-          this.disableNameEntry();
-          if (game && game.canvas) {
-            game.canvas.focus();
-          }		  
-		  game.time.events.add(60, function(){
+  this.updateScore(0);
+  this.restartGame();
+  this.disableNameEntry();
+  if (game && game.canvas) {
+    game.canvas.focus();
+  }
+
+  game.time.events.add(60, function () {
     if (this.gutterFixture1) this.gutterFixture1.SetSensor(true);
     if (this.gutterFixture2) this.gutterFixture2.SetSensor(true);
   }, this);
-	if (game.physics && game.physics.box2d) {
-            game.physics.box2d.resume();
-          }
-        },
+
+  if (game.physics && game.physics.box2d) {
+    game.physics.box2d.resume();
+  }
+
+  // Restart once more shortly after resuming physics to prevent the
+  // Play Again button from requiring a second click.
+  if (game.time && game.time.events) {
+    game.time.events.add(30, this.restartGame, this);
+  }
+},
 
         goToMainMenu: function () {
   // close overlays and input
