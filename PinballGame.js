@@ -2287,6 +2287,42 @@ function fetchLeaderboard() {
   });
 }
 
+function updateLeaderboard() {
+    const list = document.getElementById('leaderboardList');
+    list.innerHTML = '';
+
+    if (!leaderboard || leaderboard.length === 0) {
+        list.innerHTML = '<div class="leaderboard-entry" style="text-align: center; color: #a5b4fc; font-style: italic;">No scores yet! Be the first to play!</div>';
+        return;
+    }
+
+    leaderboard.slice(0, 10).forEach((entry, index) => {
+        const div = document.createElement('div');
+        div.className = 'leaderboard-entry';
+
+        let trophy = '';
+        if (index === 0) trophy = '🥇 ';
+        else if (index === 1) trophy = '🥈 ';
+        else if (index === 2) trophy = '🥉 ';
+        else trophy = `${index + 1}. `;
+
+        const dateLabel = entry.date
+            ? new Date(entry.date).toLocaleDateString(undefined, {
+                year: 'numeric', month: 'short', day: 'numeric'
+              })
+            : '';
+
+        div.innerHTML = `
+            <span>${trophy}${entry.name}</span>
+            <span style="display: flex; flex-direction: column; align-items: flex-end;">
+                <span style="font-weight: bold;">${entry.score} pts</span>
+                <span style="font-size: 0.8rem; opacity: 0.7;">${dateLabel}</span>
+            </span>
+        `;
+        list.appendChild(div);
+    });
+}
+
 // ADD LEADERBOARD STATE
 Pinball.Leaderboard = function(game) {};
 
