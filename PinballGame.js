@@ -1964,8 +1964,6 @@ restartGame: function () {
  
 },
 
-
-	
 	
 playAgain: function () {
   this.updateScore(0);
@@ -1975,14 +1973,16 @@ playAgain: function () {
     game.canvas.focus();
   }
 
-  game.time.events.add(120, function () {
+  game.time.events.add(60, function () {
     if (this.gutterFixture1) this.gutterFixture1.SetSensor(true);
     if (this.gutterFixture2) this.gutterFixture2.SetSensor(true);
   }, this);
 
   if (game.physics && game.physics.box2d) {
+  game.time.events.add(120, function () {
     game.physics.box2d.resume();
-
+  }, this);
+}
 },
 
         goToMainMenu: function () {
