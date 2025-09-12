@@ -1977,6 +1977,7 @@ restartGame: function () {
           if (game && game.canvas) {
     		game.canvas.focus();
   			}
+		  game.physics.box2d.resume();
 	},
 
         goToMainMenu: function () {
