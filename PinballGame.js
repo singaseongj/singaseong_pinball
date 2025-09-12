@@ -1975,7 +1975,7 @@ playAgain: function () {
     game.canvas.focus();
   }
 
-  game.time.events.add(60, function () {
+  game.time.events.add(120, function () {
     if (this.gutterFixture1) this.gutterFixture1.SetSensor(true);
     if (this.gutterFixture2) this.gutterFixture2.SetSensor(true);
   }, this);
@@ -1983,17 +1983,6 @@ playAgain: function () {
   if (game.physics && game.physics.box2d) {
     game.physics.box2d.resume();
 
-    // Restart and resume again shortly after to keep physics active
-    if (game.time && game.time.events) {
-      game.time.events.add(60, function () {
-        this.restartGame();
-        game.physics.box2d.resume();
-      }, this);
-    }
-  } else if (game.time && game.time.events) {
-    // Fallback: still restart once more without physics
-    game.time.events.add(60, this.restartGame, this);
-  }
 },
 
         goToMainMenu: function () {
