@@ -1959,7 +1959,7 @@ restartGame: function () {
   this.gameOver = false; this.gameOverActive = false;
   this.launcherIsMoving = false; this.launcherGoingUp = false;
 
-// 7) Resume physics, then re-enable sensors on the next tick
+// 7) Re-enable sensors on the next tick
   game.time.events.add(60, function(){
     if (this.gutterFixture1) this.gutterFixture1.SetSensor(true);
     if (this.gutterFixture2) this.gutterFixture2.SetSensor(true);
@@ -1971,14 +1971,16 @@ restartGame: function () {
 	
 	
 	playAgain: function () {
-		  this.updateScore(0);
-  		  this.restartGame();
-  		  this.disableNameEntry();
+          this.updateScore(0);
+          if (game.physics && game.physics.box2d) {
+            game.physics.box2d.resume();
+          }
+          this.restartGame();
+          this.disableNameEntry();
           if (game && game.canvas) {
-    		game.canvas.focus();
-  			}
-		  game.physics.box2d.resume();
-	},
+            game.canvas.focus();
+          }
+        },
 
         goToMainMenu: function () {
   // close overlays and input
