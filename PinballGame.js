@@ -1932,7 +1932,7 @@ try {
 	// Call this from your Play Again button
 restartGame: function () {
   // Close UI & stop name typing
-
+  this.hideGameOverOverlay();
 
   // Pause physics while we teleport
   game.physics.box2d.pause();
@@ -1966,12 +1966,7 @@ restartGame: function () {
   this.gameOver = false; this.gameOverActive = false;
   this.launcherIsMoving = false; this.launcherGoingUp = false;
 
-  // 7) Resume physics, then re-enable sensors on the next tick
-  game.physics.box2d.resume();
-  game.time.events.add(60, function(){
-    if (this.gutterFixture1) this.gutterFixture1.SetSensor(true);
-    if (this.gutterFixture2) this.gutterFixture2.SetSensor(true);
-  }, this);
+  
 },
 
 
