@@ -1942,7 +1942,6 @@ restartGame: function () {
   if (this.gutterFixture2) this.gutterFixture2.SetSensor(false);
 
   // 2) Reset score/UI
-  this.updateScore ? this.updateScore(0) : (this.scoreValue=0, this.scoreLabel.setText("0"), this.scoreLabelShadow.setText("0"));
 
   // 3) Reset ball transform & velocities (use underlying Box2D if available)
   var x = this.ballStart[0] * this.PTM, y = this.ballStart[1] * this.PTM;
@@ -1980,6 +1979,13 @@ restartGame: function () {
 	
 	playAgain: function () {
   this.disableNameEntry();
+  if (this.updateScore) {
+    this.updateScore(0);
+  } else {
+    this.scoreValue = 0;
+    this.scoreLabel.setText("0");
+    this.scoreLabelShadow.setText("0");
+  }
   this.restartGame();
   if (game && game.canvas) {
     game.canvas.focus();
