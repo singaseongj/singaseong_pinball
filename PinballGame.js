@@ -1934,8 +1934,6 @@ restartGame: function () {
   // Close UI & stop name typing
   this.hideGameOverOverlay();
 
-  // Pause physics while we teleport
-  game.physics.box2d.pause();
 
 
   // 2) Reset score/UI
@@ -1964,7 +1962,7 @@ restartGame: function () {
   this.launcherIsMoving = false; this.launcherGoingUp = false;
 
   // 7) Resume physics, then re-enable sensors on the next tick
-  game.physics.box2d.resume();
+
  
 },
 
