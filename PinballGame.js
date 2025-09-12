@@ -1937,9 +1937,6 @@ restartGame: function () {
   // Pause physics while we teleport
   game.physics.box2d.pause();
 
-  // 1) Temporarily disable gutter sensors so they don't re-fire
-  if (this.gutterFixture1) this.gutterFixture1.SetSensor(false);
-  if (this.gutterFixture2) this.gutterFixture2.SetSensor(false);
 
   // 2) Reset score/UI
 
