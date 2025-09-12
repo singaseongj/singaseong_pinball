@@ -1934,8 +1934,6 @@ restartGame: function () {
   // Close UI & stop name typing
   this.hideGameOverOverlay();
 
-
-
   // 2) Reset score/UI
 
   // 3) Reset ball transform & velocities (use underlying Box2D if available)
@@ -1961,8 +1959,11 @@ restartGame: function () {
   this.gameOver = false; this.gameOverActive = false;
   this.launcherIsMoving = false; this.launcherGoingUp = false;
 
-  // 7) Resume physics, then re-enable sensors on the next tick
-
+// 7) Resume physics, then re-enable sensors on the next tick
+  game.time.events.add(60, function(){
+    if (this.gutterFixture1) this.gutterFixture1.SetSensor(true);
+    if (this.gutterFixture2) this.gutterFixture2.SetSensor(true);
+  }, this);
  
 },
 
