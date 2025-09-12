@@ -1932,7 +1932,7 @@ try {
 	// Call this from your Play Again button
 restartGame: function () {
   // Close UI & stop name typing
-  this.hideGameOverOverlay();
+
 
   // Pause physics while we teleport
   game.physics.box2d.pause();
@@ -1978,11 +1978,13 @@ restartGame: function () {
 	
 	
 	playAgain: function () {
-  this.restartGame();
-  if (game && game.canvas) {
-    game.canvas.focus();
-  }
-},
+		  this.updateScore(0);
+  		  this.restartGame();
+  		  this.disableNameEntry();
+          if (game && game.canvas) {
+    		game.canvas.focus();
+  			}
+	},
 
         goToMainMenu: function () {
   // close overlays and input
