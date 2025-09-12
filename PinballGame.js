@@ -1966,7 +1966,9 @@ restartGame: function () {
   this.gameOver = false; this.gameOverActive = false;
   this.launcherIsMoving = false; this.launcherGoingUp = false;
 
-  
+  // 7) Resume physics, then re-enable sensors on the next tick
+  game.physics.box2d.resume();
+ 
 },
 
 
