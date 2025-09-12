@@ -1970,15 +1970,16 @@ restartGame: function () {
 
 	
 	
-	playAgain: function () {
+playAgain: function () {
           this.updateScore(0);
-          if (game.physics && game.physics.box2d) {
-            game.physics.box2d.resume();
-          }
+          
           this.restartGame();
           this.disableNameEntry();
           if (game && game.canvas) {
             game.canvas.focus();
+          }
+		  if (game.physics && game.physics.box2d) {
+            game.physics.box2d.resume();
           }
         },
 
