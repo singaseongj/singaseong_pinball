@@ -1989,8 +1989,9 @@ playAgain: function () {
   if (game.time && game.time.events) {
     game.time.events.add(30, this.restartGame, this);
   }
-	if (game.physics && game.physics.box2d) {
+  if (game.physics && game.physics.box2d) {
     game.physics.box2d.resume();
+  }
 },
 
         goToMainMenu: function () {
