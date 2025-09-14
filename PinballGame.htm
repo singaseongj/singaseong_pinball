@@ -68,6 +68,18 @@
         }
       });
     </script>
+    <script>
+      (function() {
+        const originalGetContext = HTMLCanvasElement.prototype.getContext;
+        HTMLCanvasElement.prototype.getContext = function(type, options) {
+          if (type === "2d") {
+            options = options || {};
+            options.willReadFrequently = true;
+          }
+          return originalGetContext.call(this, type, options);
+        };
+      })();
+    </script>
     <script src="PinballGame.js"></script>
   </body>
 </html>
