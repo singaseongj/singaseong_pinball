@@ -1609,14 +1609,19 @@ fixViewportThen: function (callback) {
   this.gameOverOverlay.add(box);
 
   // label
-  var nameLbl = game.add.bitmapText(60, 195, "ArialBlackWhite", "ENTER YOUR NAME", 16);
+  var nameLbl = game.add.text(60, 195, "ENTER YOUR NAME", {
+    font: "16px 'Noto Sans KR', Arial, sans-serif",
+    fill: "#FFFFFF"
+  });
   this.gameOverOverlay.add(nameLbl);
 
   // live name display
   this.playerName = "";
-  this.nameInputField = game.add.bitmapText(160, 235, "ArialBlackWhite", "", 20);
+  this.nameInputField = game.add.text(160, 235, "", {
+    font: "20px 'Noto Sans KR', Arial, sans-serif",
+    fill: "#000000"
+  });
   this.nameInputField.anchor.set(0.5);
-  this.nameInputField.tint = 0x000000; // black text inside white box
   this.gameOverOverlay.add(this.nameInputField);
 
   // --- Save button ---
@@ -2421,8 +2426,10 @@ Pinball.Leaderboard.prototype = {
       this.scoreGroup.add(rankText);
 
       // NAME
-      var nameText = game.add.bitmapText(60, yPos, "ArialBlackWhite", name, 18);
-      nameText.tint = 0xFFFFFF;
+      var nameText = game.add.text(60, yPos, name, {
+        font: "18px 'Noto Sans KR', Arial, sans-serif",
+        fill: "#FFFFFF"
+      });
       this.scoreGroup.add(nameText);
 
       // SCORE
