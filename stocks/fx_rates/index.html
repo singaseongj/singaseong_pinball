@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>환율 추이 - 2024년 USD/KRW</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/src/apple-touch-icon.png"/>
+    <link rel="icon" type="image/png" sizes="32x32" href="/src/favicon-32x32.png"/>
+    <link rel="icon" type="image/png" sizes="16x16" href="/src/favicon-16x16.png"/>
+    <link rel="shortcut icon" href="/src/favicon.ico"/>
+    <link rel="manifest" href="/src/site.webmanifest"/>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: 'Spoqa Han Sans Neo', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+        line-height: 1.4;
+      }
+
+      body {
+        margin: 0;
+        padding: 0 1.5rem 3rem;
+        background: #f4f6fb;
+        color: #1b1e28;
+      }
+
+      header {
+        padding: 1.5rem 0 0.5rem;
+      }
+
+      h1 {
+        margin: 0 0 0.5rem;
+        font-size: clamp(1.6rem, 2.2vw, 2.3rem);
+      }
+
+      p {
+        margin: 0.5rem 0;
+      }
+
+      a {
+        color: #0059c9;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: center;
+        margin: 1.5rem 0;
+      }
+
+      label {
+        font-weight: 600;
+      }
+
+      select {
+        padding: 0.4rem 0.6rem;
+        font-size: 1rem;
+      }
+
+      .status {
+        border-radius: 0.75rem;
+        padding: 1rem;
+        background: #fff;
+        box-shadow: 0 15px 35px rgba(15, 31, 66, 0.1);
+      }
+
+      .status h2 {
+        margin: 0 0 0.75rem;
+        font-size: 1.2rem;
+      }
+
+      .status-grid {
+        display: grid;
+        gap: 0.75rem;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+
+      .status-item {
+        padding: 0.65rem 0.75rem;
+        border-radius: 0.6rem;
+        background: linear-gradient(135deg, rgba(0, 99, 255, 0.08), rgba(1, 29, 78, 0.02));
+      }
+
+      .status-item strong {
+        display: block;
+        font-size: 0.9rem;
+        color: #39445b;
+      }
+
+      .status-item span {
+        font-size: 1.1rem;
+        font-weight: 700;
+      }
+
+      .table-wrapper {
+        margin-top: 2rem;
+        background: #fff;
+        border-radius: 0.8rem;
+        box-shadow: 0 15px 35px rgba(15, 31, 66, 0.1);
+        overflow: hidden;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 600px;
+      }
+
+      thead {
+        background: rgba(0, 80, 189, 0.85);
+        color: #fff;
+      }
+
+      th,
+      td {
+        padding: 0.65rem 0.9rem;
+        text-align: right;
+        border-bottom: 1px solid rgba(27, 30, 40, 0.1);
+        font-variant-numeric: tabular-nums;
+      }
+
+      th:first-child,
+      td:first-child {
+        text-align: left;
+      }
+
+      tbody tr:nth-child(even) {
+        background: rgba(0, 0, 0, 0.04);
+      }
+
+      .table-scroll {
+        max-height: 480px;
+        overflow: auto;
+      }
+
+      .notice {
+        margin-top: 1.5rem;
+        font-size: 0.9rem;
+        color: #5a6376;
+      }
+
+      .error {
+        background: rgba(255, 68, 68, 0.12);
+        border: 1px solid rgba(255, 68, 68, 0.3);
+        color: #870202;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        margin: 1.5rem 0;
+        white-space: pre-line;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body {
+          background: #0a0e1a;
+          color: #e5e9f5;
+        }
+
+        a {
+          color: #6fb6ff;
+        }
+
+        .status,
+        .table-wrapper {
+          background: #111929;
+          box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
+        }
+
+        .status-item {
+          background: linear-gradient(135deg, rgba(0, 125, 255, 0.25), rgba(0, 40, 90, 0.35));
+        }
+
+        tbody tr:nth-child(even) {
+          background: rgba(255, 255, 255, 0.03);
+        }
+
+        th,
+        td {
+          border-bottom-color: rgba(229, 233, 245, 0.1);
+        }
+
+        .notice {
+          color: #b8c1d8;
+        }
+
+        .error {
+          background: rgba(255, 94, 94, 0.15);
+          border-color: rgba(255, 94, 94, 0.4);
+          color: #ffdfdf;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>2024년 USD/KRW 환율 추이</h1>
+      <p>
+        Stooq에서 제공하는 일별 환율 데이터를 바탕으로 2024년 미국 달러(USD) 대비
+        한국 원화(KRW)의 변동을 정리했습니다. 연도를 선택해 데이터를 확인하세요.
+      </p>
+    </header>
+    <div class="controls">
+      <label for="yearSelect">연도 선택</label>
+      <select id="yearSelect" aria-label="환율 데이터 연도 선택"></select>
+      <span id="dataStatus" aria-live="polite"></span>
+    </div>
+    <div id="errorPanel" class="error" role="alert" hidden></div>
+    <section id="statusPanel" class="status" hidden>
+      <h2 id="statusTitle">데이터 요약</h2>
+      <div class="status-grid" id="statusGrid"></div>
+    </section>
+    <section class="table-wrapper" hidden id="tableWrapper">
+      <div class="table-scroll">
+        <table aria-describedby="statusTitle">
+          <thead>
+            <tr>
+              <th scope="col">날짜</th>
+              <th scope="col">시가</th>
+              <th scope="col">고가</th>
+              <th scope="col">저가</th>
+              <th scope="col">종가</th>
+            </tr>
+          </thead>
+          <tbody id="dataTable"></tbody>
+        </table>
+      </div>
+    </section>
+    <p class="notice">
+      데이터 출처: <a href="https://stooq.com/q/d/l/?s=usdkrw&i=d" target="_blank" rel="noopener">Stooq</a>.
+      공휴일 등으로 일부 날짜는 데이터가 제공되지 않을 수 있습니다.
+    </p>
+    <script>
+      const manifestUrl = './fx_history_manifest.json';
+      const yearSelect = document.getElementById('yearSelect');
+      const statusPanel = document.getElementById('statusPanel');
+      const statusGrid = document.getElementById('statusGrid');
+      const tableWrapper = document.getElementById('tableWrapper');
+      const dataTable = document.getElementById('dataTable');
+      const errorPanel = document.getElementById('errorPanel');
+      const dataStatus = document.getElementById('dataStatus');
+
+      function showError(message) {
+        errorPanel.textContent = message;
+        errorPanel.hidden = false;
+        statusPanel.hidden = true;
+        tableWrapper.hidden = true;
+        dataStatus.textContent = '오류 발생';
+      }
+
+      function clearError() {
+        errorPanel.hidden = true;
+        errorPanel.textContent = '';
+      }
+
+      function formatNumber(value) {
+        if (value === null || Number.isNaN(value)) {
+          return '-';
+        }
+        return new Intl.NumberFormat('ko-KR', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        }).format(value);
+      }
+
+      function renderStatus(data) {
+        if (!Array.isArray(data) || data.length === 0) {
+          statusPanel.hidden = true;
+          return;
+        }
+
+        const closes = data
+          .map(item => (typeof item.close === 'number' ? item.close : null))
+          .filter(value => value !== null);
+
+        const first = data[0];
+        const last = data[data.length - 1];
+        const minClose = closes.length > 0 ? Math.min(...closes) : null;
+        const maxClose = closes.length > 0 ? Math.max(...closes) : null;
+        const change =
+          typeof first.close === 'number' && typeof last.close === 'number'
+            ? last.close - first.close
+            : null;
+
+        const items = [
+          {
+            label: '최초 종가',
+            value:
+              typeof first.close === 'number'
+                ? `${formatNumber(first.close)} KRW`
+                : '-'
+          },
+          {
+            label: '최종 종가',
+            value:
+              typeof last.close === 'number'
+                ? `${formatNumber(last.close)} KRW`
+                : '-'
+          },
+          {
+            label: '연간 변동',
+            value:
+              change !== null
+                ? `${change > 0 ? '+' : ''}${formatNumber(change)} KRW`
+                : '-'
+          },
+          {
+            label: '최저 종가',
+            value: minClose !== null ? `${formatNumber(minClose)} KRW` : '-'
+          },
+          {
+            label: '최고 종가',
+            value: maxClose !== null ? `${formatNumber(maxClose)} KRW` : '-'
+          },
+          {
+            label: '데이터 건수',
+            value: `${data.length.toLocaleString('ko-KR')} 건`
+          }
+        ];
+
+        statusGrid.innerHTML = items
+          .map(
+            item => `
+              <div class="status-item">
+                <strong>${item.label}</strong>
+                <span>${item.value}</span>
+              </div>
+            `
+          )
+          .join('');
+
+        statusPanel.hidden = false;
+      }
+
+      function renderTable(data) {
+        if (!Array.isArray(data)) {
+          tableWrapper.hidden = true;
+          return;
+        }
+
+        const rowsHtml = data
+          .map(
+            item => `
+              <tr>
+                <td>${item.date}</td>
+                <td>${formatNumber(item.open)}</td>
+                <td>${formatNumber(item.high)}</td>
+                <td>${formatNumber(item.low)}</td>
+                <td>${formatNumber(item.close)}</td>
+              </tr>
+            `
+          )
+          .join('');
+
+        dataTable.innerHTML = rowsHtml;
+        tableWrapper.hidden = false;
+      }
+
+      async function loadDataset(entry) {
+        if (!entry || typeof entry.file !== 'string') {
+          throw new Error('연도별 데이터 파일 정보가 올바르지 않습니다.');
+        }
+
+        const response = await fetch(entry.file);
+        if (!response.ok) {
+          throw new Error(`데이터 파일을 불러오지 못했습니다: ${entry.file}`);
+        }
+
+        const json = await response.json();
+        const data = Array.isArray(json.data) ? json.data : [];
+        renderStatus(data);
+        renderTable(data);
+        const yearLabel = typeof entry.year === 'number' ? `${entry.year}년` : entry.title || '선택됨';
+        dataStatus.textContent = `${yearLabel} 데이터 ${data.length.toLocaleString('ko-KR')}건`;
+        clearError();
+      }
+
+      async function init() {
+        try {
+          const response = await fetch(manifestUrl);
+          if (!response.ok) {
+            throw new Error('매니페스트 파일을 불러오지 못했습니다.');
+          }
+
+          const manifest = await response.json();
+          const datasets = Array.isArray(manifest.datasets) ? manifest.datasets : [];
+
+          if (datasets.length === 0) {
+            throw new Error('연도별 데이터가 없습니다.');
+          }
+
+          yearSelect.innerHTML = datasets
+            .map((entry, index) => {
+              const yearLabel = typeof entry.year === 'number' ? entry.year : entry.title || '연도 정보 없음';
+              return `<option value="${entry.file}" data-index="${index}">${yearLabel}</option>`;
+            })
+            .join('');
+
+          dataStatus.textContent = '데이터 불러오는 중...';
+
+          const setActiveDataset = async index => {
+            const entry = datasets[index];
+            if (!entry) {
+              showError('선택한 연도 정보를 찾을 수 없습니다.');
+              return;
+            }
+            try {
+              yearSelect.selectedIndex = index;
+              await loadDataset(entry);
+            } catch (err) {
+              console.error(err);
+              showError(err.message);
+            }
+          };
+
+          yearSelect.addEventListener('change', event => {
+            const option = event.target.selectedOptions[0];
+            const index = option ? option.dataset.index : '0';
+            setActiveDataset(Number.parseInt(index, 10) || 0);
+          });
+
+          await setActiveDataset(0);
+        } catch (err) {
+          console.error(err);
+          showError(`${err.message}\n/stocks/fx_rates/fx_history_manifest.json 및 연도별 파일을 확인해주세요.`);
+        }
+      }
+
+      init();
+    </script>
+  </body>
+</html>
